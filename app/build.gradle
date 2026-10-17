@@ -81,7 +81,7 @@ dependencies {
     implementation 'com.github.medyo:android-about-page:1.2.4'
     implementation 'de.psdev.licensesdialog:licensesdialog:1.9.0'
     implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
-    implementation 'moe.feng:AlipayZeroSdk:1.1'
+    implementation 'com.github.fython:AlipayZeroSdk:1.1'
 
     implementation 'org.jdeferred:jdeferred-android-aar:1.2.4'
     implementation 'com.github.clans:fab:1.6.4'
@@ -94,7 +94,7 @@ dependencies {
     implementation 'org.apache.commons:commons-compress:1.20'
     implementation 'org.tukaani:xz:1.5'
 
-    implementation 'com.hzy:libp7zip:1.7.0'
+    implementation 'com.github.hzy3774:AndroidP7zip:v1.7.2'
 //    implementation "com.github.seven332.a7zip:extract:master-SNAPSHOT"
 //    implementation 'com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.02'
 //    implementation 'com.victor:lib:1.0.4'
