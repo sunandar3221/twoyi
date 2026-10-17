@@ -76,7 +76,7 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
     private LoadingAnimationView mLoadingView;
     private TextView mLoadingText;
     private View mLoadingLayout;
-    private View mBootLogView;
+    private BootLogTexture mBootLogView;
 
     private final AtomicBoolean mIsExtracting = new AtomicBoolean(false);
     private static final int REQUEST_CHOOSE_ROM_FILE = 2001;
