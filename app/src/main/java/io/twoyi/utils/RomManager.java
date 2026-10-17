@@ -50,7 +50,7 @@ public final class RomManager {
 
     private static final String TAG = "RomManager";
 
-    private static final String ROOTFS_NAME = "rootfs.7z";
+    public static final String ROOTFS_NAME = "rootfs.7z";
 
     private static final String ROM_INFO_FILE = "rom.ini";
 
@@ -61,6 +61,19 @@ public final class RomManager {
     private static final String CUSTOM_ROM_FILE_NAME = "rootfs_3rd.7z";
 
     private RomManager() {
+    }
+
+    public static boolean hasAssetRom(Context context) {
+        try (InputStream inputStream = context.getAssets().open(ROOTFS_NAME)) {
+            return inputStream != null;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    public static boolean hasLocalRom(Context context) {
+        File localRom = context.getFileStreamPath(ROOTFS_NAME);
+        return localRom != null && localRom.exists() && localRom.length() > 1024 * 1024;
     }
 
     public static void initRootfs(Context context) {
@@ -160,6 +173,9 @@ public final class RomManager {
     }
 
     public static boolean needsUpgrade(Context context) {
+        if (!hasAssetRom(context)) {
+            return false;
+        }
         RomInfo currentRomInfo = getCurrentRomInfo(context);
         Log.i(TAG, "current rom: " + currentRomInfo);
         if (currentRomInfo.equals(DEFAULT_ROM_INFO)) {
@@ -289,28 +305,33 @@ public final class RomManager {
     }
 
     public static boolean extractRootfsInAssets(Context context) {
-
-        // read assets
-        long t1 = SystemClock.elapsedRealtime();
         File rootfs7z = context.getFileStreamPath(ROOTFS_NAME);
-        try (InputStream inputStream = new BufferedInputStream(context.getAssets().open(ROOTFS_NAME));
-             OutputStream os = new BufferedOutputStream(new FileOutputStream(rootfs7z))) {
-            byte[] buffer = new byte[10240];
-            int count;
-            while ((count = inputStream.read(buffer)) > 0) {
-                os.write(buffer, 0, count);
+
+        if (hasAssetRom(context)) {
+            long t1 = SystemClock.elapsedRealtime();
+            try (InputStream inputStream = new BufferedInputStream(context.getAssets().open(ROOTFS_NAME));
+                 OutputStream os = new BufferedOutputStream(new FileOutputStream(rootfs7z))) {
+                byte[] buffer = new byte[32768];
+                int count;
+                while ((count = inputStream.read(buffer)) > 0) {
+                    os.write(buffer, 0, count);
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "extractRootfsInAssets: failed to read asset " + ROOTFS_NAME, e);
+                return false;
             }
-        } catch (IOException e) {
-            Log.e(TAG, "extractRootfsInAssets: failed to read asset " + ROOTFS_NAME, e);
+            long t2 = SystemClock.elapsedRealtime();
+            Log.i(TAG, "copy asset rootfs: " + (t2 - t1) + "ms");
+        } else if (!hasLocalRom(context)) {
+            Log.e(TAG, "extractRootfsInAssets: neither asset nor local rootfs.7z exists!");
             return false;
         }
+
         long t2 = SystemClock.elapsedRealtime();
-
         int ret = extractRootfs(context, rootfs7z);
-
         long t3 = SystemClock.elapsedRealtime();
 
-        Log.i(TAG, "extract rootfs, read assets: " + (t2 - t1) + " un7z: " + (t3 - t2) + "ret: " + ret);
+        Log.i(TAG, "extract rootfs, un7z: " + (t3 - t2) + "ms, ret: " + ret);
 
         return ret == 0;
     }

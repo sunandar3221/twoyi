@@ -113,4 +113,18 @@
     <string name="timeout_45s">45 seconds (Recommended)</string>
     <string name="timeout_60s">60 seconds</string>
     <string name="timeout_90s">90 seconds</string>
+    <string name="os_download_title">Twoyi Container OS Required</string>
+    <string name="os_download_message">You are running the slim version of Twoyi. A container OS package (rootfs.7z, ~85MB) is required to start.\n\nPlease choose an installation method:</string>
+    <string name="os_download_auto">Download Online (Automatic)</string>
+    <string name="os_download_select_file">Select Local rootfs.7z File</string>
+    <string name="os_download_custom_url">Enter Custom Download URL</string>
+    <string name="os_download_progress_title">Downloading Twoyi OS</string>
+    <string name="os_download_extracting_title">Extracting Container OS…</string>
+    <string name="os_download_failed_title">Download Failed</string>
+    <string name="os_download_failed">Failed to download OS: %1$s</string>
+    <string name="os_download_invalid_file">The selected file is not a valid rootfs archive.</string>
+    <string name="os_custom_url_title">Enter OS Download URL</string>
+    <string name="os_custom_url_hint">https://.../rootfs.7z</string>
+    <string name="quit">Quit</string>
+    <string name="retry">Retry</string>
 </resources>

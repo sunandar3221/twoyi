@@ -40,6 +40,34 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    flavorDimensions "mode"
+
+    productFlavors {
+        slim {
+            dimension "mode"
+        }
+        offline {
+            dimension "mode"
+        }
+    }
+
+    sourceSets {
+        offline {
+            assets.srcDirs = ['src/offline/assets']
+        }
+        slim {
+            assets.srcDirs = ['src/slim/assets']
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def flavor = variant.flavorName
+            def buildType = variant.buildType.name
+            output.outputFileName = "twoyi-${flavor}-${buildType}.apk"
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -62,7 +90,7 @@ task cargoBuild {
 }
 
 tasks.whenTaskAdded { task ->
-    if ((task.name == 'javaPreCompileDebug' || task.name == 'javaPreCompileRelease')) {
+    if (task.name.startsWith('javaPreCompile') && !task.name.contains('Test')) {
         task.dependsOn 'cargoBuild'
     }
 }

@@ -111,4 +111,18 @@
     <string name="timeout_45s">45 秒 (推荐)</string>
     <string name="timeout_60s">60 秒</string>
     <string name="timeout_90s">90 秒</string>
+    <string name="os_download_title">需要两仪容器系统镜像</string>
+    <string name="os_download_message">您正在运行轻量精简版两仪，首次启动需要容器系统镜像 (rootfs.7z，约 85MB)。\n\n请选择安装方式：</string>
+    <string name="os_download_auto">在线自动下载</string>
+    <string name="os_download_select_file">选择本地 rootfs.7z 文件</string>
+    <string name="os_download_custom_url">输入自定义下载链接</string>
+    <string name="os_download_progress_title">正在下载两仪系统镜像</string>
+    <string name="os_download_extracting_title">正在解压容器系统…</string>
+    <string name="os_download_failed_title">下载镜像失败</string>
+    <string name="os_download_failed">下载镜像失败：%1$s</string>
+    <string name="os_download_invalid_file">所选文件不是有效的 rootfs 压缩包。</string>
+    <string name="os_custom_url_title">输入镜像下载链接</string>
+    <string name="os_custom_url_hint">https://.../rootfs.7z</string>
+    <string name="quit">退出</string>
+    <string name="retry">重试</string>
 </resources>

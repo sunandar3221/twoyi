@@ -97,18 +97,18 @@ jobs:
             done
           fi
 
-      - name: Prepare Rootfs Assets
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.include_rootfs }}
+      - name: Prepare Rootfs Assets for Offline Package
         run: |
-          mkdir -p app/src/main/assets
-          if [ ! -f "app/src/main/assets/rootfs.7z" ]; then
-            echo "Downloading official rootfs.7z from Twoyi release..."
+          mkdir -p app/src/offline/assets
+          mkdir -p app/src/slim/assets
+          if [ ! -f "app/src/offline/assets/rootfs.7z" ]; then
+            echo "Downloading official rootfs.7z for offline package..."
             curl -L -s -o /tmp/official_twoyi.apk https://github.com/twoyi/twoyi/releases/download/0.5.4/twoyi_0.5.4-03211927-release.apk
-            unzip -q -p /tmp/official_twoyi.apk assets/rootfs.7z > app/src/main/assets/rootfs.7z
-            unzip -q -p /tmp/official_twoyi.apk assets/rom.ini > app/src/main/assets/rom.ini 2>/dev/null || true
+            unzip -q -p /tmp/official_twoyi.apk assets/rootfs.7z > app/src/offline/assets/rootfs.7z
+            unzip -q -p /tmp/official_twoyi.apk assets/rom.ini > app/src/offline/assets/rom.ini 2>/dev/null || true
             rm -f /tmp/official_twoyi.apk
           fi
-          ls -lh app/src/main/assets/
+          ls -lh app/src/offline/assets/
 
       - name: Build Rust Native Library (libtwoyi.so)
         env:
@@ -123,26 +123,42 @@ jobs:
       - name: Grant Execute Permission to Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Build APK with Gradle
+      - name: Build APK with Gradle (Slim & Offline)
         env:
           SKIP_CARGO_BUILD: "true"
         run: ./gradlew assembleRelease --stacktrace
 
       - name: Verify Built APK
         run: |
-          echo "Looking for output APKs:"
-          ls -la app/build/outputs/apk/release/
+          echo "Output APKs found:"
+          find app/build/outputs/apk -name "*.apk" -exec ls -lh {} +
 
-      - name: Upload APK Artifact
+      - name: Upload Both APK Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: twoyi-release-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: twoyi-release-apks
+          path: app/build/outputs/apk/**/release/*.apk
+          retention-days: 14
+
+      - name: Upload Offline APK (Standalone)
+        uses: actions/upload-artifact@v4
+        with:
+          name: twoyi-offline-apk
+          path: app/build/outputs/apk/offline/release/*.apk
+          retention-days: 14
+
+      - name: Upload Slim APK (Lightweight)
+        uses: actions/upload-artifact@v4
+        with:
+          name: twoyi-slim-apk
+          path: app/build/outputs/apk/slim/release/*.apk
           retention-days: 14
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/*.apk
+          files: |
+            app/build/outputs/apk/offline/release/*.apk
+            app/build/outputs/apk/slim/release/*.apk
           generate_release_notes: true

@@ -42,9 +42,22 @@ import com.cleveroad.androidmanimation.LoadingAnimationView;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.widget.EditText;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import io.twoyi.utils.AppKV;
 import io.twoyi.utils.LogEvents;
 import io.twoyi.utils.NavUtils;
+import io.twoyi.utils.RomDownloader;
 import io.twoyi.utils.RomManager;
 import io.twoyi.utils.UIHelper;
 
@@ -65,6 +78,8 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
     private View mBootLogView;
 
     private final AtomicBoolean mIsExtracting = new AtomicBoolean(false);
+    private static final int REQUEST_CHOOSE_ROM_FILE = 2001;
+    private RomDownloader mRomDownloader;
 
     private final SurfaceHolder.Callback mSurfaceCallback = new SurfaceHolder.Callback() {
         @Override
@@ -158,26 +173,177 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
         boolean shouldExtractRom = !romExist || forceInstall || (!use3rdRom && factoryRomUpdated);
 
         if (shouldExtractRom) {
-            Log.i(TAG, "extracting rom...");
+            if (!use3rdRom && !RomManager.hasAssetRom(this) && !RomManager.hasLocalRom(this)) {
+                showDownloadRomDialog();
+                return;
+            }
 
-            showTipsForFirstBoot();
-
-            new Thread(() -> {
-                mIsExtracting.set(true);
-                RomManager.extractRootfs(getApplicationContext(), romExist, factoryRomUpdated, forceInstall, use3rdRom);
-                mIsExtracting.set(false);
-
-                RomManager.initRootfs(getApplicationContext());
-
-                runOnUiThread(() -> {
-                    mRootView.addView(mSurfaceView, 0);
-                    showBootingProcedure();
-                });
-            }, "extract-rom").start();
+            startExtractAndBoot(romExist, factoryRomUpdated, forceInstall, use3rdRom, null);
         } else {
             mRootView.addView(mSurfaceView, 0);
             showBootingProcedure();
         }
+    }
+
+    private void startExtractAndBoot(boolean romExist, boolean factoryRomUpdated, boolean forceInstall, boolean use3rdRom, Runnable onFinishExtract) {
+        Log.i(TAG, "extracting rom...");
+        showTipsForFirstBoot();
+
+        new Thread(() -> {
+            mIsExtracting.set(true);
+            RomManager.extractRootfs(getApplicationContext(), romExist, factoryRomUpdated, forceInstall, use3rdRom);
+            mIsExtracting.set(false);
+
+            RomManager.initRootfs(getApplicationContext());
+
+            if (onFinishExtract != null) {
+                runOnUiThread(onFinishExtract);
+            }
+
+            runOnUiThread(() -> {
+                mRootView.addView(mSurfaceView, 0);
+                showBootingProcedure();
+            });
+        }, "extract-rom").start();
+    }
+
+    private void showDownloadRomDialog() {
+        CharSequence[] options = new CharSequence[]{
+                getString(R.string.os_download_auto),
+                getString(R.string.os_download_select_file),
+                getString(R.string.os_download_custom_url)
+        };
+
+        UIHelper.getDialogBuilder(this)
+                .setTitle(R.string.os_download_title)
+                .setMessage(R.string.os_download_message)
+                .setCancelable(false)
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            startOnlineDownload(RomDownloader.DEFAULT_ROM_URL);
+                            break;
+                        case 1:
+                            openFilePickerForRom();
+                            break;
+                        case 2:
+                            showCustomUrlDialog();
+                            break;
+                    }
+                })
+                .setNegativeButton(R.string.quit, (dialog, which) -> finish())
+                .show();
+    }
+
+    private void startOnlineDownload(String url) {
+        if (mRomDownloader == null) {
+            mRomDownloader = new RomDownloader(this);
+        }
+        mRomDownloader.startDownload(url, new RomDownloader.DownloadCallback() {
+            @Override
+            public void onSuccess(File downloadedFile) {
+                startExtractAndBoot(false, false, false, false, () -> {
+                    if (mRomDownloader != null) {
+                        mRomDownloader.dismissDialog();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                UIHelper.getDialogBuilder(Render2Activity.this)
+                        .setTitle(R.string.os_download_failed_title)
+                        .setMessage(getString(R.string.os_download_failed, errorMessage))
+                        .setPositiveButton(R.string.retry, (dialog, which) -> showDownloadRomDialog())
+                        .setNegativeButton(R.string.quit, (dialog, which) -> finish())
+                        .show();
+            }
+
+            @Override
+            public void onCancelled() {
+                showDownloadRomDialog();
+            }
+        });
+    }
+
+    private void showCustomUrlDialog() {
+        final EditText input = new EditText(this);
+        input.setHint(R.string.os_custom_url_hint);
+        input.setText(RomDownloader.DEFAULT_ROM_URL);
+        input.setSelection(input.getText().length());
+
+        UIHelper.getDialogBuilder(this)
+                .setTitle(R.string.os_custom_url_title)
+                .setView(input)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    String url = input.getText().toString().trim();
+                    if (!TextUtils.isEmpty(url)) {
+                        startOnlineDownload(url);
+                    } else {
+                        showDownloadRomDialog();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> showDownloadRomDialog())
+                .show();
+    }
+
+    private void openFilePickerForRom() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            startActivityForResult(intent, REQUEST_CHOOSE_ROM_FILE);
+        } catch (Throwable e) {
+            Toast.makeText(this, "File picker error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            showDownloadRomDialog();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CHOOSE_ROM_FILE) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                handleSelectedRomUri(data.getData());
+            } else {
+                showDownloadRomDialog();
+            }
+        }
+    }
+
+    private void handleSelectedRomUri(Uri uri) {
+        MaterialDialog progressDialog = new MaterialDialog.Builder(this)
+                .title(R.string.progress_dialog_title)
+                .content(R.string.extracting_tips)
+                .progress(true, 0)
+                .cancelable(false)
+                .show();
+
+        UIHelper.GLOBAL_EXECUTOR.execute(() -> {
+            File targetFile = getFileStreamPath(RomManager.ROOTFS_NAME);
+            try (InputStream is = getContentResolver().openInputStream(uri);
+                 OutputStream os = new FileOutputStream(targetFile)) {
+                byte[] buffer = new byte[32768];
+                int count;
+                while ((count = is.read(buffer)) > 0) {
+                    os.write(buffer, 0, count);
+                }
+                os.flush();
+
+                runOnUiThread(() -> {
+                    UIHelper.dismiss(progressDialog);
+                    startExtractAndBoot(false, false, false, false, null);
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to copy selected ROM file", e);
+                targetFile.delete();
+                runOnUiThread(() -> {
+                    UIHelper.dismiss(progressDialog);
+                    Toast.makeText(Render2Activity.this, getString(R.string.os_download_invalid_file), Toast.LENGTH_LONG).show();
+                    showDownloadRomDialog();
+                });
+            }
+        });
     }
 
     private void showTipsForFirstBoot() {

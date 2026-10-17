@@ -111,4 +111,18 @@
     <string name="timeout_45s">45 秒 (推奨)</string>
     <string name="timeout_60s">60 秒</string>
     <string name="timeout_90s">90 秒</string>
+    <string name="os_download_title">Twoyi コンテナOSが必要です</string>
+    <string name="os_download_message">軽量スリム版を実行しています。起動するにはコンテナOSパッケージ (rootfs.7z、約85MB) が必要です。\n\nインストール方法を選択してください：</string>
+    <string name="os_download_auto">オンライン自動ダウンロード</string>
+    <string name="os_download_select_file">ローカルの rootfs.7z を選択</string>
+    <string name="os_download_custom_url">カスタムダウンロードURLを入力</string>
+    <string name="os_download_progress_title">Twoyi OS をダウンロード中</string>
+    <string name="os_download_extracting_title">コンテナOSを展開中…</string>
+    <string name="os_download_failed_title">ダウンロード失敗</string>
+    <string name="os_download_failed">OSのダウンロードに失敗しました: %1$s</string>
+    <string name="os_download_invalid_file">選択されたファイルは有効な rootfs アーカイブではありません。</string>
+    <string name="os_custom_url_title">OSダウンロードURLを入力</string>
+    <string name="os_custom_url_hint">https://.../rootfs.7z</string>
+    <string name="quit">終了</string>
+    <string name="retry">再試行</string>
 </resources>
