@@ -191,6 +191,9 @@ public class BootLogTexture extends TextureView implements TextureView.SurfaceTe
         Canvas canvas = null;
         try {
             canvas = lockCanvas();
+            if (canvas == null) {
+                return;
+            }
 
             // clear canvas
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
@@ -204,6 +207,9 @@ public class BootLogTexture extends TextureView implements TextureView.SurfaceTe
 
             int count = 0;
             for (String log : mSnapShot) {
+                if (TextUtils.isEmpty(log)) {
+                    continue;
+                }
 
                 char chr = log.charAt(0);
 
@@ -212,12 +218,19 @@ public class BootLogTexture extends TextureView implements TextureView.SurfaceTe
                     paint = mDefaultPaint;
                 }
 
-                canvas.drawText(log, 0, count++ * 20, paint);
+                // Baseline offset so first lines are clearly visible
+                canvas.drawText(log, 10, (count + 1) * 22, paint);
+                count++;
             }
 
+        } catch (Throwable e) {
+            // ignore render hiccups during surface destruction
         } finally {
             if (canvas != null) {
-                unlockCanvasAndPost(canvas);
+                try {
+                    unlockCanvasAndPost(canvas);
+                } catch (Throwable ignored) {
+                }
             }
         }
 

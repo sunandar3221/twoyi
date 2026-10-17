@@ -133,6 +133,9 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
 
         mSurfaceView.setOnTouchListener(this);
 
+        if (AppKV.getBooleanConfig(this, AppKV.KEEP_SCREEN_ON, true)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
     }
 
     @Override
@@ -206,7 +209,8 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
             if (true) {
                 boolean success = false;
                 try {
-                    success = TwoyiStatusManager.getInstance().waitBoot(15, TimeUnit.SECONDS);
+                    int timeoutSeconds = AppKV.getIntConfig(getApplicationContext(), AppKV.BOOT_TIMEOUT_SECONDS, 35);
+                    success = TwoyiStatusManager.getInstance().waitBoot(timeoutSeconds, TimeUnit.SECONDS);
                 } catch (Throwable ignored) {
                 }
 
@@ -258,10 +262,47 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
         return super.onKeyDown(keyCode, event);
     }
 
+    private long mLastBackTime = 0;
+
     @Override
     public void onBackPressed() {
-        // super.onBackPressed();
-        Renderer.sendKeycode(KeyEvent.KEYCODE_HOME);
+        long now = SystemClock.elapsedRealtime();
+        if (now - mLastBackTime < 2000) {
+            showQuickOptionsDialog();
+        } else {
+            mLastBackTime = now;
+            Renderer.sendKeycode(KeyEvent.KEYCODE_BACK);
+            Toast.makeText(this, R.string.press_back_again_for_menu, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showQuickOptionsDialog() {
+        CharSequence[] items = new CharSequence[]{
+                getString(R.string.menu_switch_host),
+                getString(R.string.title_settings),
+                getString(R.string.settings_key_reboot),
+                getString(R.string.settings_key_shutdown)
+        };
+        UIHelper.getDialogBuilder(this)
+                .setTitle(R.string.container_quick_menu_title)
+                .setItems(items, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            TwoyiStatusManager.getInstance().switchOs(Render2Activity.this);
+                            break;
+                        case 1:
+                            UIHelper.startActivity(Render2Activity.this, io.twoyi.ui.SettingsActivity.class);
+                            break;
+                        case 2:
+                            RomManager.reboot(Render2Activity.this);
+                            break;
+                        case 3:
+                            RomManager.shutdown(Render2Activity.this);
+                            break;
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private float getBestFps() {

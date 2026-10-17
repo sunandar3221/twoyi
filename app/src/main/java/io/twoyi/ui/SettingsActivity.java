@@ -12,10 +12,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.SwitchPreference;
 import android.provider.DocumentsContract;
+import android.text.format.Formatter;
+import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -167,6 +171,45 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
+            Preference containerDpi = findPreference(R.string.settings_key_container_dpi);
+            if (containerDpi != null) {
+                int currentDpi = AppKV.getIntConfig(getActivity(), AppKV.CONTAINER_DPI, 0);
+                updateDpiSummary(containerDpi, currentDpi);
+                containerDpi.setOnPreferenceClickListener(preference -> {
+                    showDpiChooserDialog(containerDpi);
+                    return true;
+                });
+            }
+
+            Preference bootTimeout = findPreference(R.string.settings_key_boot_timeout);
+            if (bootTimeout != null) {
+                int currentTimeout = AppKV.getIntConfig(getActivity(), AppKV.BOOT_TIMEOUT_SECONDS, 35);
+                bootTimeout.setSummary(getString(R.string.settings_boot_timeout_summary) + " (" + currentTimeout + "s)");
+                bootTimeout.setOnPreferenceClickListener(preference -> {
+                    showBootTimeoutDialog(bootTimeout);
+                    return true;
+                });
+            }
+
+            Preference keepScreenOnPref = findPreference(R.string.settings_key_keep_screen_on);
+            if (keepScreenOnPref instanceof SwitchPreference) {
+                SwitchPreference switchPref = (SwitchPreference) keepScreenOnPref;
+                switchPref.setChecked(AppKV.getBooleanConfig(getActivity(), AppKV.KEEP_SCREEN_ON, true));
+                switchPref.setOnPreferenceChangeListener((preference, newValue) -> {
+                    boolean enabled = (Boolean) newValue;
+                    AppKV.setBooleanConfig(getActivity(), AppKV.KEEP_SCREEN_ON, enabled);
+                    return true;
+                });
+            }
+
+            Preference containerInfo = findPreference(R.string.settings_key_container_info);
+            if (containerInfo != null) {
+                containerInfo.setOnPreferenceClickListener(preference -> {
+                    showContainerInfoDialog();
+                    return true;
+                });
+            }
+
             donate.setOnPreferenceClickListener(preference -> {
                 Context context = getContext();
                 if (context instanceof Activity) {
@@ -201,6 +244,98 @@ public class SettingsActivity extends AppCompatActivity {
                 UIHelper.startActivity(getContext(), AboutActivity.class);
                 return true;
             });
+        }
+
+        private void updateDpiSummary(Preference pref, int dpi) {
+            if (dpi == 0) {
+                pref.setSummary(getString(R.string.dpi_auto, DisplayMetrics.DENSITY_DEVICE_STABLE));
+            } else {
+                pref.setSummary(dpi + " DPI");
+            }
+        }
+
+        private void showDpiChooserDialog(Preference pref) {
+            CharSequence[] items = new CharSequence[]{
+                    getString(R.string.dpi_auto, DisplayMetrics.DENSITY_DEVICE_STABLE),
+                    getString(R.string.dpi_compact),
+                    getString(R.string.dpi_medium),
+                    getString(R.string.dpi_standard),
+                    getString(R.string.dpi_large)
+            };
+            int[] values = new int[]{0, 240, 320, 400, 480};
+            int current = AppKV.getIntConfig(getActivity(), AppKV.CONTAINER_DPI, 0);
+            int checkedItem = 0;
+            for (int i = 0; i < values.length; i++) {
+                if (values[i] == current) {
+                    checkedItem = i;
+                    break;
+                }
+            }
+            UIHelper.getDialogBuilder(getActivity())
+                    .setTitle(R.string.settings_key_container_dpi)
+                    .setSingleChoiceItems(items, checkedItem, (dialog, which) -> {
+                        int selectedVal = values[which];
+                        AppKV.setIntConfig(getActivity(), AppKV.CONTAINER_DPI, selectedVal);
+                        updateDpiSummary(pref, selectedVal);
+                        dialog.dismiss();
+                        Toast.makeText(getActivity(), R.string.settings_container_dpi_summary, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void showBootTimeoutDialog(Preference pref) {
+            CharSequence[] items = new CharSequence[]{
+                    getString(R.string.timeout_15s),
+                    getString(R.string.timeout_30s),
+                    getString(R.string.timeout_45s),
+                    getString(R.string.timeout_60s),
+                    getString(R.string.timeout_90s)
+            };
+            int[] values = new int[]{15, 30, 45, 60, 90};
+            int current = AppKV.getIntConfig(getActivity(), AppKV.BOOT_TIMEOUT_SECONDS, 35);
+            int checkedItem = 2;
+            for (int i = 0; i < values.length; i++) {
+                if (values[i] == current) {
+                    checkedItem = i;
+                    break;
+                }
+            }
+            UIHelper.getDialogBuilder(getActivity())
+                    .setTitle(R.string.settings_key_boot_timeout)
+                    .setSingleChoiceItems(items, checkedItem, (dialog, which) -> {
+                        int selectedVal = values[which];
+                        AppKV.setIntConfig(getActivity(), AppKV.BOOT_TIMEOUT_SECONDS, selectedVal);
+                        pref.setSummary(getString(R.string.settings_boot_timeout_summary) + " (" + selectedVal + "s)");
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void showContainerInfoDialog() {
+            Activity act = getActivity();
+            boolean romExists = RomManager.romExist(act);
+            RomManager.RomInfo romInfo = RomManager.getCurrentRomInfo(act);
+            File sdcard = RomManager.getRomSdcardDir(act);
+            String freeSpace = Formatter.formatFileSize(act, sdcard.getFreeSpace());
+            String totalSpace = Formatter.formatFileSize(act, sdcard.getTotalSpace());
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("Container Status: ").append(romExists ? "Installed" : "Not Installed").append("\n\n");
+            sb.append("ROM Author: ").append(romInfo.author).append("\n");
+            sb.append("ROM Version: ").append(romInfo.version).append("\n");
+            sb.append("ROM Description: ").append(romInfo.desc).append("\n\n");
+            sb.append("Internal Storage: ").append(freeSpace).append(" free / ").append(totalSpace).append("\n");
+            sb.append("Host OS: Android ").append(Build.VERSION.RELEASE).append(" (API ").append(Build.VERSION.SDK_INT).append(")\n");
+            sb.append("Device: ").append(Build.MANUFACTURER).append(" ").append(Build.MODEL).append("\n");
+            sb.append("Architecture: arm64-v8a");
+
+            UIHelper.getDialogBuilder(act)
+                    .setTitle(R.string.settings_key_container_info)
+                    .setMessage(sb.toString())
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
         }
 
 

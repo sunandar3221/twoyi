@@ -92,4 +92,25 @@
     <string name="settings_key_shutdown">Shutdown</string>
     <string name="settings_key_reboot">Reboot</string>
     <string name="replace_rom_unofficial_tips">Sorry, please edit the rom info and avoid using official author name :)</string>
+    <string name="press_back_again_for_menu">Press back again for container menu</string>
+    <string name="container_quick_menu_title">Container Options</string>
+    <string name="menu_switch_host">Switch to Host (Home)</string>
+    <string name="settings_key_container_dpi">Screen Density (DPI)</string>
+    <string name="settings_container_dpi_summary">Adjust container display scaling (effective on next boot)</string>
+    <string name="settings_key_boot_timeout">Boot Timeout</string>
+    <string name="settings_boot_timeout_summary">Maximum time waiting for container initialization</string>
+    <string name="settings_key_keep_screen_on">Keep Screen Awake</string>
+    <string name="settings_keep_screen_on_summary">Prevent screen sleep while Twoyi is in foreground</string>
+    <string name="settings_key_container_info">Container Information</string>
+    <string name="settings_container_info_summary">View ROM version, storage, and container system details</string>
+    <string name="dpi_auto">Auto (Default: %1$d DPI)</string>
+    <string name="dpi_compact">Compact / Tablet (240 DPI)</string>
+    <string name="dpi_medium">Medium (320 DPI)</string>
+    <string name="dpi_standard">Standard (400 DPI)</string>
+    <string name="dpi_large">Large (480 DPI)</string>
+    <string name="timeout_15s">15 seconds</string>
+    <string name="timeout_30s">30 seconds</string>
+    <string name="timeout_45s">45 seconds (Recommended)</string>
+    <string name="timeout_60s">60 seconds</string>
+    <string name="timeout_90s">90 seconds</string>
 </resources>

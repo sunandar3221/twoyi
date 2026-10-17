@@ -52,18 +52,19 @@ public class TwoyiMessenger {
     }
 
     public TwoyiMessenger connect() {
-        if (this.socket != null) {
+        if (this.socket != null && this.mWriter != null) {
             return this;
         }
 
         try {
             this.socket = new LocalSocket(LocalSocket.SOCKET_SEQPACKET);
             this.socket.connect(new LocalSocketAddress(SOCK_NAME));
-            InputStream is = this.socket.getInputStream();
             OutputStream os = this.socket.getOutputStream();
             this.mWriter = new OutputStreamWriter(os);
         } catch (IOException e) {
-            e.printStackTrace();
+            IOUtils.closeSilently(this.socket);
+            this.socket = null;
+            this.mWriter = null;
         }
         return this;
     }
@@ -97,11 +98,20 @@ public class TwoyiMessenger {
             }
         }
 
+        if (mWriter == null) {
+            return;
+        }
+
         try {
             this.mLock.writeLock().lock();
-            this.mWriter.write(msg);
-            this.mWriter.flush();
-        } catch (Throwable ignored) {
+            if (this.mWriter != null) {
+                this.mWriter.write(msg);
+                this.mWriter.flush();
+            }
+        } catch (Throwable e) {
+            IOUtils.closeSilently(this.socket);
+            this.socket = null;
+            this.mWriter = null;
         } finally {
             this.mLock.writeLock().unlock();
         }

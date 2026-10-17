@@ -158,6 +158,9 @@ public class IOUtils {
     }
 
     public static boolean deleteDirectory(File directory) {
+        if (directory == null || !directory.exists()) {
+            return true;
+        }
         try {
             Files.walk(directory.toPath())
                     .sorted(Comparator.reverseOrder())

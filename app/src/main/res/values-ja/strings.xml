@@ -90,4 +90,25 @@
     <string name="settings_key_shutdown">シャットダウン</string>
     <string name="settings_key_reboot">再起動</string>
     <string name="replace_rom_unofficial_tips">申し訳ございませんが、rom情報の編集と正式な作者名の使用を避けてください。 :)</string>
+    <string name="press_back_again_for_menu">もう一度戻るを押してメニューを開く</string>
+    <string name="container_quick_menu_title">コンテナのオプション</string>
+    <string name="menu_switch_host">ホストシステムに切り替え</string>
+    <string name="settings_key_container_dpi">画面密度 (DPI)</string>
+    <string name="settings_container_dpi_summary">コンテナの表示倍率を調整（次回起動時に有効）</string>
+    <string name="settings_key_boot_timeout">起動タイムアウト</string>
+    <string name="settings_boot_timeout_summary">コンテナ起動の最大待機時間</string>
+    <string name="settings_key_keep_screen_on">画面の常時点灯</string>
+    <string name="settings_keep_screen_on_summary">フォアグラウンド実行時の自動画面スリープを防止</string>
+    <string name="settings_key_container_info">コンテナ情報</string>
+    <string name="settings_container_info_summary">ROMバージョン、ストレージ、システム情報を確認</string>
+    <string name="dpi_auto">自動 (デフォルト: %1$d DPI)</string>
+    <string name="dpi_compact">コンパクト / タブレット (240 DPI)</string>
+    <string name="dpi_medium">標準中 (320 DPI)</string>
+    <string name="dpi_standard">標準 (400 DPI)</string>
+    <string name="dpi_large">大 (480 DPI)</string>
+    <string name="timeout_15s">15 秒</string>
+    <string name="timeout_30s">30 秒</string>
+    <string name="timeout_45s">45 秒 (推奨)</string>
+    <string name="timeout_60s">60 秒</string>
+    <string name="timeout_90s">90 秒</string>
 </resources>

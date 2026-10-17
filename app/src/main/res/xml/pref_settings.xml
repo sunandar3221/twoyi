@@ -40,6 +40,27 @@
             android:summary="@string/settings_factory_reset_summary"
             android:title="@string/settings_key_factory_reset" />
 
+        <Preference
+            android:key="@string/settings_key_container_dpi"
+            android:summary="@string/settings_container_dpi_summary"
+            android:title="@string/settings_key_container_dpi" />
+
+        <Preference
+            android:key="@string/settings_key_boot_timeout"
+            android:summary="@string/settings_boot_timeout_summary"
+            android:title="@string/settings_key_boot_timeout" />
+
+        <SwitchPreference
+            android:key="@string/settings_key_keep_screen_on"
+            android:defaultValue="true"
+            android:summary="@string/settings_keep_screen_on_summary"
+            android:title="@string/settings_key_keep_screen_on" />
+
+        <Preference
+            android:key="@string/settings_key_container_info"
+            android:summary="@string/settings_container_info_summary"
+            android:title="@string/settings_key_container_info" />
+
     </PreferenceCategory>
 
 

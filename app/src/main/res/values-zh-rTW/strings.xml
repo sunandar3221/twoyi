@@ -90,4 +90,25 @@
     <string name="settings_key_shutdown">關機</string>
     <string name="settings_key_reboot">重啟</string>
     <string name="replace_rom_unofficial_tips">抱歉，請修改 ROM 描述資訊，並且儘量不要使用官方作者的名字 :)</string>
+    <string name="press_back_again_for_menu">再按一次返回開啟容器選單</string>
+    <string name="container_quick_menu_title">容器快捷選項</string>
+    <string name="menu_switch_host">返回宿主系統 (主螢幕)</string>
+    <string name="settings_key_container_dpi">螢幕密度 (DPI)</string>
+    <string name="settings_container_dpi_summary">自訂容器顯示縮放（下次啟動生效）</string>
+    <string name="settings_key_boot_timeout">啟動逾時時間</string>
+    <string name="settings_boot_timeout_summary">容器初始化最大等待時間</string>
+    <string name="settings_key_keep_screen_on">保持螢幕常亮</string>
+    <string name="settings_keep_screen_on_summary">在前台執行兩儀時防止螢幕自動休眠</string>
+    <string name="settings_key_container_info">容器系統資訊</string>
+    <string name="settings_container_info_summary">查看目前 ROM、儲存及容器運作狀態</string>
+    <string name="dpi_auto">自動 (預設: %1$d DPI)</string>
+    <string name="dpi_compact">平板/緊湊 (240 DPI)</string>
+    <string name="dpi_medium">中等 (320 DPI)</string>
+    <string name="dpi_standard">標準 (400 DPI)</string>
+    <string name="dpi_large">較大 (480 DPI)</string>
+    <string name="timeout_15s">15 秒</string>
+    <string name="timeout_30s">30 秒</string>
+    <string name="timeout_45s">45 秒 (推薦)</string>
+    <string name="timeout_60s">60 秒</string>
+    <string name="timeout_90s">90 秒</string>
 </resources>

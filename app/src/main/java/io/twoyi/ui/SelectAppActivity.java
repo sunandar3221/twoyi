@@ -568,7 +568,12 @@ public class SelectAppActivity extends AppCompatActivity {
 
             AppItem item = getItem(position);
 
-            holder.icon.setColorFilter(colorFilter);
+            boolean is64Bit = UIHelper.isApk64(item.applicationInfo.sourceDir);
+            if (!is64Bit) {
+                holder.icon.setColorFilter(colorFilter);
+            } else {
+                holder.icon.clearColorFilter();
+            }
 
             int[][] states = {{android.R.attr.state_checked}, {}};
             int[] colors = {getResources().getColor(R.color.colorPrimary),

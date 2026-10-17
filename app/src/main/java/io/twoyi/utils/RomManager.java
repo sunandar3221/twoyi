@@ -78,7 +78,9 @@ public final class RomManager {
         Log.i(TAG, "timezone: " + timeZoneID);
         properties.setProperty("persist.sys.timezone", timeZoneID);
 
-        properties.setProperty("ro.sf.lcd_density", String.valueOf(DisplayMetrics.DENSITY_DEVICE_STABLE));
+        int customDpi = AppKV.getIntConfig(context, AppKV.CONTAINER_DPI, 0);
+        int density = customDpi > 0 ? customDpi : DisplayMetrics.DENSITY_DEVICE_STABLE;
+        properties.setProperty("ro.sf.lcd_density", String.valueOf(density));
 
         try (Writer writer = new FileWriter(propFile)) {
             properties.store(writer, null);
@@ -299,7 +301,8 @@ public final class RomManager {
                 os.write(buffer, 0, count);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "extractRootfsInAssets: failed to read asset " + ROOTFS_NAME, e);
+            return false;
         }
         long t2 = SystemClock.elapsedRealtime();
 
@@ -333,7 +336,7 @@ public final class RomManager {
     }
 
     public static boolean isAndroid12() {
-        return Build.VERSION.PREVIEW_SDK_INT + Build.VERSION.SDK_INT == Build.VERSION_CODES.S;
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
     }
 
     private static void removePartition(Context context, String partition) {

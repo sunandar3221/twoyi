@@ -120,13 +120,30 @@ public class Installer {
             if (callback == null) {
                 return;
             }
-            if (out1.isSuccess()) {
+            boolean isFailure = false;
+            String failureReason = "";
+            for (String line : out1.getOut()) {
+                if (line.contains("Failure [") || line.toLowerCase(Locale.ROOT).contains("failed")) {
+                    isFailure = true;
+                    failureReason = line;
+                    break;
+                }
+            }
+
+            if (out1.isSuccess() && !isFailure) {
                 callback.onSuccess(files);
             } else {
-                String msg = Arrays.toString(out1.getErr().toArray(new String[0]));
-                Log.w(TAG, "msg: " + msg);
-
-                callback.onFail(files, msg);
+                if (TextUtils.isEmpty(failureReason)) {
+                    if (!out1.getErr().isEmpty()) {
+                        failureReason = Arrays.toString(out1.getErr().toArray(new String[0]));
+                    } else if (!out1.getOut().isEmpty()) {
+                        failureReason = Arrays.toString(out1.getOut().toArray(new String[0]));
+                    } else {
+                        failureReason = "Unknown installation error";
+                    }
+                }
+                Log.w(TAG, "install failure msg: " + failureReason);
+                callback.onFail(files, failureReason);
             }
         });
     }

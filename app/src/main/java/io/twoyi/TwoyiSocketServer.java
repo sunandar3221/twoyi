@@ -125,10 +125,15 @@ public class TwoyiSocketServer {
             while (!currentThread.isInterrupted()) {
                 byte[] data = new byte[1024];
                 int read = inputStream.read(data);
+                if (read <= 0) {
+                    break;
+                }
                 handleData(new String(data, 0, read, StandardCharsets.US_ASCII));
             }
 
         } catch (IOException ignored) {
+        } finally {
+            IOUtils.closeSilently(socket);
         }
     }
 

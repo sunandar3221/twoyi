@@ -31,6 +31,16 @@ public class AppKV {
 
     // 是否应该使用第三方 ROM
     public static final String SHOULD_USE_THIRD_PARTY_ROM = "should_use_third_party_rom";
+
+    // 自定义容器 DPI (0: 自动)
+    public static final String CONTAINER_DPI = "container_dpi";
+
+    // 启动超时时间（秒）
+    public static final String BOOT_TIMEOUT_SECONDS = "boot_timeout_seconds";
+
+    // 运行期间保持屏幕常亮
+    public static final String KEEP_SCREEN_ON = "keep_screen_on";
+
     public static boolean getBooleanConfig(Context context,  String key, boolean fallback) {
         return getPref(context).getBoolean(key, fallback);
     }
@@ -38,6 +48,24 @@ public class AppKV {
     @SuppressLint("ApplySharedPref")
     public static void setBooleanConfig(Context context, String key, boolean value) {
         getPref(context).edit().putBoolean(key, value).commit();
+    }
+
+    public static int getIntConfig(Context context, String key, int fallback) {
+        return getPref(context).getInt(key, fallback);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setIntConfig(Context context, String key, int value) {
+        getPref(context).edit().putInt(key, value).commit();
+    }
+
+    public static String getStringConfig(Context context, String key, String fallback) {
+        return getPref(context).getString(key, fallback);
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void setStringConfig(Context context, String key, String value) {
+        getPref(context).edit().putString(key, value).commit();
     }
 
     private static SharedPreferences getPref(Context context) {

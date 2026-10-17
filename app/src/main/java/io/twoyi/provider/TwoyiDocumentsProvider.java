@@ -58,6 +58,9 @@ public class TwoyiDocumentsProvider extends DocumentsProvider {
     public Cursor queryRoots(String[] projection) {
 
         File BASE_DIR = RomManager.getRomSdcardDir(getContext());
+        if (!BASE_DIR.exists()) {
+            BASE_DIR.mkdirs();
+        }
 
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_ROOT_PROJECTION);
         final String applicationName = getContext().getString(R.string.app_name);
