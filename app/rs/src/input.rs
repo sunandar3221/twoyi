@@ -59,10 +59,11 @@ fn copy_to_cstr<const COUNT: usize>(data: &str, arr: &mut [u8; COUNT]) {
     arr[..len].copy_from_slice(bytes);
 }
 
-const MAX_POINTERS: usize = 5;
+const MAX_POINTERS: usize = 10;
 
-static INPUT_SENDER: Lazy<Mutex<Option<Sender<input_event>>>> = Lazy::new(|| { Mutex::new(None)});
-static KEY_SENDER: Lazy<Mutex<Option<Sender<input_event>>>> = Lazy::new(|| { Mutex::new(None)});
+static INPUT_SENDER: Lazy<Mutex<Option<Sender<input_event>>>> = Lazy::new(|| Mutex::new(None));
+static KEY_SENDER: Lazy<Mutex<Option<Sender<input_event>>>> = Lazy::new(|| Mutex::new(None));
+static G_INPUT_MT: Lazy<Mutex<[i32; MAX_POINTERS]>> = Lazy::new(|| Mutex::new([0i32; MAX_POINTERS]));
 
 pub fn start_input_system(width: i32, height: i32) {
     thread::spawn(move || {
@@ -79,11 +80,11 @@ pub fn input_event_write(
     code: i32,
     val: i32,
 ) {
-    let mut tp = libc::timespec { tv_sec:0, tv_nsec: 0 };
+    let mut tp = libc::timespec { tv_sec: 0, tv_nsec: 0 };
     let _ = unsafe { clock_gettime(CLOCK_MONOTONIC, &mut tp) };
     let tv = timeval {
         tv_sec: tp.tv_sec,
-        tv_usec: tp.tv_nsec / 1000
+        tv_usec: tp.tv_nsec / 1000,
     };
 
     let ev = input_event {
@@ -96,99 +97,106 @@ pub fn input_event_write(
 }
 
 pub fn handle_touch(ev: MotionEvent) {
-    let opt = INPUT_SENDER.lock().unwrap();
-    if let Some(ref fd) = *opt {
+    let sender_opt = match INPUT_SENDER.lock() {
+        Ok(guard) => guard.clone(),
+        Err(poisoned) => poisoned.into_inner().clone(),
+    };
 
+    if let Some(ref fd) = sender_opt {
         let action = ev.action();
+        let pointer_count = ev.pointer_count();
         let pointer_index = ev.pointer_index();
         let pointer = ev.pointer_at_index(pointer_index);
         let pointer_id = pointer.pointer_id();
-        let pressure = pointer.pressure();
 
-        // info!("action: {:#?}, pointer_index: {}", action, pointer_index);
-
-        static G_INPUT_MT: Lazy<Mutex<[i32;MAX_POINTERS]>> = Lazy::new(|| {std::sync::Mutex::new([0i32;MAX_POINTERS])});
+        let mut mt = match G_INPUT_MT.lock() {
+            Ok(g) => g,
+            Err(poisoned) => poisoned.into_inner(),
+        };
 
         match action {
-            MotionAction::Down | MotionAction::PointerDown => {
+            MotionAction::Down => {
+                let slot = (pointer_id as usize).min(MAX_POINTERS - 1);
+                mt[slot] = 1;
+
                 let x = pointer.x();
                 let y = pointer.y();
+                let pressure = pointer.pressure().max(0.1);
 
-                let mut mt = G_INPUT_MT.lock().unwrap();
-                mt[pointer_id as usize] = 1;
-
-                let mut index = 0;
-                while index < MAX_POINTERS {
-                    if mt[index] != 0 {
-                        input_event_write(fd, EV_ABS, ABS_MT_SLOT, pointer_id);
-                        input_event_write(fd, EV_ABS, ABS_MT_TRACKING_ID, pointer_id + 1);
-
-                        if index == 0 {
-                            input_event_write(fd, EV_KEY, BTN_TOUCH, 108);
-                            input_event_write(fd, EV_KEY, BTN_TOOL_FINGER, 108);
-                        }
-
-                        input_event_write(fd, EV_ABS, ABS_MT_POSITION_X, x as i32);
-                        input_event_write(fd, EV_ABS, ABS_MT_POSITION_Y, y as i32);
-
-                        input_event_write(fd, EV_ABS, ABS_MT_PRESSURE, pressure as i32);
-
-                        input_event_write(fd, EV_SYN, SYN_REPORT, SYN_REPORT);
-                    }
-                    index = index + 1;
-                }
+                input_event_write(fd, EV_ABS, ABS_MT_SLOT, slot as i32);
+                input_event_write(fd, EV_ABS, ABS_MT_TRACKING_ID, (slot + 1) as i32);
+                input_event_write(fd, EV_KEY, BTN_TOUCH, 1);
+                input_event_write(fd, EV_KEY, BTN_TOOL_FINGER, 1);
+                input_event_write(fd, EV_ABS, ABS_MT_POSITION_X, x as i32);
+                input_event_write(fd, EV_ABS, ABS_MT_POSITION_Y, y as i32);
+                input_event_write(fd, EV_ABS, ABS_MT_PRESSURE, (pressure * 80.0) as i32);
+                input_event_write(fd, EV_SYN, SYN_REPORT, 0);
             }
-            MotionAction::Up => {
-                // let x = pointer.x();
-                // let y = pointer.y();
+            MotionAction::PointerDown => {
+                let slot = (pointer_id as usize).min(MAX_POINTERS - 1);
+                mt[slot] = 1;
 
-                let mut index = 0;
-                while index != MAX_POINTERS {
-                    let mut mt = G_INPUT_MT.lock().unwrap();
-                    if mt[index] != 0 {
-                        mt[index] = 0;
-                        input_event_write(fd, EV_ABS, ABS_MT_SLOT, index.try_into().unwrap());
-                        input_event_write(fd, EV_ABS, ABS_MT_TRACKING_ID, -1);
-                        input_event_write(fd, EV_SYN, SYN_REPORT, SYN_REPORT);
-                    }
-                    index = index + 1;
-                }
+                let x = pointer.x();
+                let y = pointer.y();
+                let pressure = pointer.pressure().max(0.1);
+
+                input_event_write(fd, EV_ABS, ABS_MT_SLOT, slot as i32);
+                input_event_write(fd, EV_ABS, ABS_MT_TRACKING_ID, (slot + 1) as i32);
+                input_event_write(fd, EV_ABS, ABS_MT_POSITION_X, x as i32);
+                input_event_write(fd, EV_ABS, ABS_MT_POSITION_Y, y as i32);
+                input_event_write(fd, EV_ABS, ABS_MT_PRESSURE, (pressure * 80.0) as i32);
+                input_event_write(fd, EV_SYN, SYN_REPORT, 0);
             }
             MotionAction::Move => {
-                let mut index = 0;
-
-                while index != MAX_POINTERS {
-                    let mt = G_INPUT_MT.lock().unwrap();
-                    if mt[index] != 0 {
-                        let x = pointer.x();
-                        let y = pointer.y();
-                        let pressure = pointer.pressure();
-
-                        input_event_write(fd, EV_ABS, ABS_MT_SLOT, index.try_into().unwrap());
-                        input_event_write(fd, EV_ABS, ABS_MT_POSITION_X, x as i32);
-                        input_event_write(fd, EV_ABS, ABS_MT_POSITION_Y, y as i32);
-
-                        input_event_write(fd, EV_ABS, ABS_MT_PRESSURE, pressure as i32);
-
-                        input_event_write(fd, EV_SYN, SYN_REPORT, SYN_REPORT);
+                let mut moved = false;
+                for i in 0..pointer_count {
+                    let p = ev.pointer_at_index(i);
+                    let pid = p.pointer_id();
+                    if (pid as usize) >= MAX_POINTERS {
+                        continue;
                     }
+                    let slot = pid as usize;
+                    mt[slot] = 1;
 
-                    index = index + 1;
+                    let x = p.x();
+                    let y = p.y();
+                    let pressure = p.pressure().max(0.1);
+
+                    input_event_write(fd, EV_ABS, ABS_MT_SLOT, slot as i32);
+                    input_event_write(fd, EV_ABS, ABS_MT_POSITION_X, x as i32);
+                    input_event_write(fd, EV_ABS, ABS_MT_POSITION_Y, y as i32);
+                    input_event_write(fd, EV_ABS, ABS_MT_PRESSURE, (pressure * 80.0) as i32);
+                    moved = true;
+                }
+                if moved {
+                    input_event_write(fd, EV_SYN, SYN_REPORT, 0);
                 }
             }
-            MotionAction::Cancel | MotionAction::PointerUp => {
-                // let x = pointer.x();
-                // let y = pointer.y();
+            MotionAction::PointerUp => {
+                let slot = (pointer_id as usize).min(MAX_POINTERS - 1);
+                mt[slot] = 0;
 
-                let mut mt = G_INPUT_MT.lock().unwrap();
-                if mt[pointer_id as usize] == 0 {
-                    return;
-                }
-
-                mt[pointer_id as usize] = 0;
-                input_event_write(fd, EV_ABS, ABS_MT_SLOT, pointer_id);
+                input_event_write(fd, EV_ABS, ABS_MT_SLOT, slot as i32);
                 input_event_write(fd, EV_ABS, ABS_MT_TRACKING_ID, -1);
-                input_event_write(fd, EV_SYN, SYN_REPORT, SYN_REPORT);
+
+                let any_active = mt.iter().any(|&v| v != 0);
+                if !any_active {
+                    input_event_write(fd, EV_KEY, BTN_TOUCH, 0);
+                    input_event_write(fd, EV_KEY, BTN_TOOL_FINGER, 0);
+                }
+                input_event_write(fd, EV_SYN, SYN_REPORT, 0);
+            }
+            MotionAction::Up | MotionAction::Cancel => {
+                for slot in 0..MAX_POINTERS {
+                    if mt[slot] != 0 {
+                        mt[slot] = 0;
+                        input_event_write(fd, EV_ABS, ABS_MT_SLOT, slot as i32);
+                        input_event_write(fd, EV_ABS, ABS_MT_TRACKING_ID, -1);
+                    }
+                }
+                input_event_write(fd, EV_KEY, BTN_TOUCH, 0);
+                input_event_write(fd, EV_KEY, BTN_TOOL_FINGER, 0);
+                input_event_write(fd, EV_SYN, SYN_REPORT, 0);
             }
             _ => {}
         }
@@ -239,7 +247,8 @@ fn generate_touch_device(width: i32, height: i32) -> device_info {
     info.abs_min[ABS_MT_TOUCH_MAJOR as usize] = 0;
     info.abs_min[ABS_MT_TOUCH_MINOR as usize] = 15;
 
-    info.abs_min[ABS_MT_SLOT as usize] = 4;
+    info.abs_min[ABS_MT_SLOT as usize] = 0;
+    info.abs_max[ABS_MT_SLOT as usize] = (MAX_POINTERS - 1) as u32;
     info.abs_min[ABS_MT_PRESSURE as usize] = 0;
     info.abs_max[ABS_MT_PRESSURE as usize] = 80;
 
@@ -265,17 +274,31 @@ fn touch_server(width: i32, height: i32) {
                 let _ = stream.write_all(unsafe { any_as_u8_slice(&device) });
 
                 let (tx, rx) = channel::<input_event>();
-                *INPUT_SENDER.lock().unwrap() = Some(tx);
+                if let Ok(mut lock) = INPUT_SENDER.lock() {
+                    *lock = Some(tx);
+                }
 
                 thread::spawn(move || {
+                    let mut batch: Vec<u8> = Vec::with_capacity(32 * std::mem::size_of::<input_event>());
                     while let Ok(ev) = rx.recv() {
-                        let data = unsafe { any_as_u8_slice(&ev) };
-                        if stream.write_all(data).is_err() {
+                        batch.extend_from_slice(unsafe { any_as_u8_slice(&ev) });
+                        // Batch all pending events in channel to minimize syscalls
+                        while let Ok(next_ev) = rx.try_recv() {
+                            batch.extend_from_slice(unsafe { any_as_u8_slice(&next_ev) });
+                            if batch.len() >= 4096 {
+                                break;
+                            }
+                        }
+                        if stream.write_all(&batch).is_err() {
                             info!("touch client stream closed or write error");
                             break;
                         }
+                        batch.clear();
                     }
                     info!("touch event thread finished");
+                    if let Ok(mut lock) = INPUT_SENDER.lock() {
+                        *lock = None;
+                    }
                 });
             }
             Err(_) => {
@@ -304,10 +327,13 @@ fn generate_key_device() -> device_info {
 }
 
 pub fn send_key_code(_keycode: i32) {
-    if let Some(ref tx) = *KEY_SENDER.lock().unwrap() {
-        input_event_write(tx, EV_KEY, KEY_BACK, 1);
-        input_event_write(tx, EV_SYN, SYN_REPORT, SYN_REPORT);
-        input_event_write(tx, EV_KEY, KEY_BACK, 0);
+    if let Ok(guard) = KEY_SENDER.lock() {
+        if let Some(ref tx) = *guard {
+            input_event_write(tx, EV_KEY, KEY_BACK, 1);
+            input_event_write(tx, EV_SYN, SYN_REPORT, 0);
+            input_event_write(tx, EV_KEY, KEY_BACK, 0);
+            input_event_write(tx, EV_SYN, SYN_REPORT, 0);
+        }
     }
 }
 
@@ -330,17 +356,30 @@ fn key_server() {
                 let _ = stream.write_all(unsafe { any_as_u8_slice(&device) });
 
                 let (tx, rx) = channel::<input_event>();
-                *KEY_SENDER.lock().unwrap() = Some(tx);
+                if let Ok(mut lock) = KEY_SENDER.lock() {
+                    *lock = Some(tx);
+                }
 
                 thread::spawn(move || {
+                    let mut batch: Vec<u8> = Vec::with_capacity(8 * std::mem::size_of::<input_event>());
                     while let Ok(ev) = rx.recv() {
-                        let data = unsafe { any_as_u8_slice(&ev) };
-                        if stream.write_all(data).is_err() {
+                        batch.extend_from_slice(unsafe { any_as_u8_slice(&ev) });
+                        while let Ok(next_ev) = rx.try_recv() {
+                            batch.extend_from_slice(unsafe { any_as_u8_slice(&next_ev) });
+                            if batch.len() >= 1024 {
+                                break;
+                            }
+                        }
+                        if stream.write_all(&batch).is_err() {
                             info!("key client stream closed or write error");
                             break;
                         }
+                        batch.clear();
                     }
                     info!("key event thread finished");
+                    if let Ok(mut lock) = KEY_SENDER.lock() {
+                        *lock = None;
+                    }
                 });
             }
             Err(_) => {

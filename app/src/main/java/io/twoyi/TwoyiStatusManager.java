@@ -15,13 +15,9 @@ package io.twoyi;
 import android.content.Context;
 import android.content.Intent;
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.twoyi.utils.LogEvents;
 
 /**
  * @author weishu
@@ -37,7 +33,7 @@ public class TwoyiStatusManager {
     private final AtomicBoolean mStarted = new AtomicBoolean(false);
     private final AtomicBoolean mShown = new AtomicBoolean(false);
 
-    private final CyclicBarrier mBootLatch = new CyclicBarrier(2);
+    private volatile CountDownLatch mBootLatch = new CountDownLatch(1);
 
     public static TwoyiStatusManager getInstance() {
         return INSTANCE;
@@ -49,11 +45,7 @@ public class TwoyiStatusManager {
 
     public void markStarted() {
         if (mStarted.compareAndSet(false, true)) {
-            try {
-                mBootLatch.await();
-            } catch (BrokenBarrierException | InterruptedException e) {
-                LogEvents.trackError(e);
-            }
+            mBootLatch.countDown();
         }
     }
 
@@ -63,16 +55,11 @@ public class TwoyiStatusManager {
 
     public void reset() {
         mStarted.set(false);
-        mBootLatch.reset();
+        mBootLatch = new CountDownLatch(1);
     }
 
-    public boolean waitBoot(long timeout, TimeUnit unit) throws InterruptedException, BrokenBarrierException {
-        try {
-            mBootLatch.await(timeout, unit);
-            return true;
-        } catch (TimeoutException e) {
-            return false;
-        }
+    public boolean waitBoot(long timeout, TimeUnit unit) throws InterruptedException {
+        return mBootLatch.await(timeout, unit);
     }
 
     public void switchOs(Context context) {

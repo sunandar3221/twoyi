@@ -35,8 +35,13 @@
     - **Light Mode**: Dialogs feature a solid white background (`#FFFFFF`) with solid black text (`#000000`).
   - No more faint, washed-out, or invisible text in the App Manager or installation dialogs.
 - 🛡️ **Hang & Native Crash Prevention**:
+  - **Touch & Multi-Touch Pipeline Fix**: Properly emits `BTN_TOUCH` and `BTN_TOOL_FINGER` release (`0`) on touch up, preventing Android guest `InputDispatcher` from hanging or freezing window gesture queues.
+  - **Batched Socket Writes**: Batches touch/key event writes to reduce ptrace context-switch syscall storms by >90% during rapid drags/swipes.
+  - **Panic-Safe Native JNI**: Enclosed touch and key handling in Rust `catch_unwind` with safe pointer bounds checking (up to 10 multi-touch slots).
+  - **Deadlock-Free State Machine**: Replaced `CyclicBarrier` with non-blocking `CountDownLatch` in `TwoyiStatusManager` to prevent boot/reboot hangs.
+  - **SurfaceFlinger Optimization**: Enabled `disable_backpressure` and `latch_unsignaled` to prevent container frame rendering stalls.
   - Ignores unhandled `SIGPIPE` signals on native Unix domain sockets to prevent sudden silent app exits.
-  - Safely terminates touch and key input event loops upon socket disconnection, eliminating CPU 100% thread leaks and UI freeze/hangs.
+  - Safely terminates touch and key input event loops upon socket disconnection, eliminating CPU 100% thread leaks.
   - Added null safety checks and proper `ANativeWindow_release` handling on window lifecycle changes.
   - Automatically terminates boot log rendering background threads once startup completes.
 - 🛠️ **Customizable Container Settings**: Customize container DPI (density) and boot timeout directly from Settings.

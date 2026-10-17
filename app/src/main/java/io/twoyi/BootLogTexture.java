@@ -160,24 +160,32 @@ public class BootLogTexture extends TextureView implements TextureView.SurfaceTe
                         return;
                     }
                     synchronized (mLogMessages) {
+                        if (mLogMessages.size() >= 300) {
+                            mLogMessages.remove(0);
+                        }
                         mLogMessages.add(s);
                     }
                 }
             };
 
-            Shell shell = ShellUtil.newSh();
-            shell.newJob().add("timeout -s 9 30 logcat -v brief *I").to(callbackList).submit();
-
-            while (mRendering.get()) {
-                render();
-                SystemClock.sleep(16);
-            }
-
+            Shell shell = null;
             try {
-                shell.waitAndClose(1, TimeUnit.SECONDS);
-            } catch (Throwable ignored) {
-            }
+                shell = ShellUtil.newSh();
+                shell.newJob().add("timeout -s 9 30 logcat -v brief *I").to(callbackList).submit();
 
+                while (mRendering.get()) {
+                    render();
+                    SystemClock.sleep(16);
+                }
+            } catch (Throwable ignored) {
+            } finally {
+                if (shell != null) {
+                    try {
+                        shell.close();
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
         });
     }
 

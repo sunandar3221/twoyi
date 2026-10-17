@@ -102,8 +102,10 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
         @Override
         public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
             Surface surface = holder.getSurface();
-            Renderer.resetWindow(surface, 0, 0, mSurfaceView.getWidth(), mSurfaceView.getHeight());
-            Log.i(TAG, "surfaceChanged: " + mSurfaceView.getWidth() + "x" + mSurfaceView.getHeight());
+            int w = width > 0 ? width : mSurfaceView.getWidth();
+            int h = height > 0 ? height : mSurfaceView.getHeight();
+            Renderer.resetWindow(surface, 0, 0, w, h);
+            Log.i(TAG, "surfaceChanged: " + w + "x" + h);
         }
 
         @Override
@@ -442,10 +444,26 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
 
         if (hasFocus) {
             NavUtils.hideNavigation(getWindow());
+            Renderer.repaint();
         }
 
         // Update global visibility.
         TwoyiStatusManager.getInstance().updateVisibility(hasFocus);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NavUtils.hideNavigation(getWindow());
+        Renderer.repaint();
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        if (level >= TRIM_MEMORY_MODERATE) {
+            System.gc();
+        }
     }
 
     @Override

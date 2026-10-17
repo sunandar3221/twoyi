@@ -155,23 +155,35 @@ pub fn renderer_remove_window(env: JNIEnv, _clz: jclass, surface: jobject) {
 
 #[no_mangle]
 pub fn handle_touch(env: JNIEnv, _clz: jclass, event: jobject) {
-    // TODO: cache the field id.
-    let ptr = env.get_field(event, "mNativePtr", "J").unwrap();
-
-    if let JValue::Long(p) = ptr {
-        let ev = unsafe {
-            let nonptr =
-            std::ptr::NonNull::new(std::mem::transmute::<i64, *mut ndk_sys::AInputEvent>(p))
-                .unwrap();
-            ndk::event::MotionEvent::from_ptr(nonptr)
-        };
-        input::handle_touch(ev)
-    }
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if let Ok(ptr) = env.get_field(event, "mNativePtr", "J") {
+            if let JValue::Long(p) = ptr {
+                if p != 0 {
+                    if let Some(nonptr) =
+                        std::ptr::NonNull::new(p as *mut ndk_sys::AInputEvent)
+                    {
+                        let ev = unsafe { ndk::event::MotionEvent::from_ptr(nonptr) };
+                        input::handle_touch(ev);
+                    }
+                }
+            }
+        }
+    }));
 }
 
+#[no_mangle]
 pub fn send_key_code(_env: JNIEnv, _clz: jclass, keycode: jint) {
-    debug!("send key code!");
-    input::send_key_code(keycode);
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        debug!("send key code!");
+        input::send_key_code(keycode);
+    }));
+}
+
+#[no_mangle]
+pub fn renderer_repaint(_env: JNIEnv, _clz: jclass) {
+    unsafe {
+        renderer_bindings::repaintOpenGLDisplay();
+    }
 }
 
 unsafe fn register_natives(jvm: &JavaVM, class_name: &str, methods: &[NativeMethod]) -> jint {
@@ -229,6 +241,7 @@ unsafe fn JNI_OnLoad(jvm: JavaVM, _reserved: *mut c_void) -> jint {
         ),
         jni_method!(handleTouch, handle_touch, "(Landroid/view/MotionEvent;)V"),
         jni_method!(sendKeycode, send_key_code, "(I)V"),
+        jni_method!(repaint, renderer_repaint, "()V"),
     ];
 
     register_natives(&jvm, class_name, jni_methods.as_ref())

@@ -96,6 +96,11 @@ public final class RomManager {
         int density = customDpi > 0 ? customDpi : DisplayMetrics.DENSITY_DEVICE_STABLE;
         properties.setProperty("ro.sf.lcd_density", String.valueOf(density));
 
+        // Container responsiveness & anti-hang optimizations
+        properties.setProperty("debug.sf.disable_backpressure", "1");
+        properties.setProperty("debug.sf.latch_unsignaled", "1");
+        properties.setProperty("dalvik.vm.dex2oat-threads", "2");
+
         try (Writer writer = new FileWriter(propFile)) {
             properties.store(writer, null);
         } catch (IOException ignored) {

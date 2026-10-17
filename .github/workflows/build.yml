@@ -160,8 +160,8 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.5.4
-          name: "Twoyi 0.5.4 (Direct APK Download)"
+          tag_name: v0.5.5
+          name: "Twoyi 0.5.5 (Direct APK Download)"
           body: |
             ### Download File Langsung (Bukan ZIP)
             Klik file di bagian **Assets** di bawah untuk langsung mengunduh ke HP Android tanpa perlu mengekstrak file zip:
