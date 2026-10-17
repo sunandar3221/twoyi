@@ -23,6 +23,8 @@ jobs:
   build:
     name: Build Android APK (arm64-v8a)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Source Code
@@ -154,11 +156,20 @@ jobs:
           path: app/build/outputs/apk/slim/release/*.apk
           retention-days: 14
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish Direct APKs to GitHub Release (No ZIP)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v0.5.4
+          name: "Twoyi 0.5.4 (Direct APK Download)"
+          body: |
+            ### Download File APK Langsung (Bukan ZIP)
+            Klik file `.apk` di bagian **Assets** di bawah untuk langsung mengunduh dan menginstal di HP Android tanpa perlu mengekstrak file zip:
+
+            - **`twoyi-slim-release.apk`** (~7 MB): Versi ringan hemat kuota. Sistem OS (rootfs.7z) diunduh otomatis di dalam aplikasi saat pertama kali dibuka, atau bisa pilih file manual.
+            - **`twoyi-offline-release.apk`** (~200 MB): Versi offline lengkap, sudah termasuk sistem kontainer di dalamnya.
           files: |
-            app/build/outputs/apk/offline/release/*.apk
             app/build/outputs/apk/slim/release/*.apk
-          generate_release_notes: true
+            app/build/outputs/apk/offline/release/*.apk
+          generate_release_notes: false
+          make_latest: true
