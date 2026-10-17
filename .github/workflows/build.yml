@@ -71,8 +71,23 @@ jobs:
 
       - name: Configure NDK Environment
         run: |
-          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
-          echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          NDK_DIR="${{ steps.setup-ndk.outputs.ndk-path }}"
+          echo "ANDROID_NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
+          echo "NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
+
+          # Fix modern rustc -lunwind requirement with NDK r21e
+          SYSROOT_LIB="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android"
+          find "$NDK_DIR" -name "libunwind.a" | while read -r f; do
+            if [[ "$f" == *"aarch64"* ]]; then
+              echo "Found libunwind: $f -> copying to $SYSROOT_LIB/"
+              cp -f "$f" "$SYSROOT_LIB/" || true
+              for api_dir in "$SYSROOT_LIB"/*/; do
+                if [ -d "$api_dir" ]; then
+                  cp -f "$f" "$api_dir/" || true
+                fi
+              done
+            fi
+          done
 
       - name: Prepare Rootfs Assets
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.include_rootfs }}
@@ -88,7 +103,10 @@ jobs:
           ls -lh app/src/main/assets/
 
       - name: Build Rust Native Library (libtwoyi.so)
+        env:
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
         run: |
+          mkdir -p app/src/main/jniLibs/arm64-v8a
           cd app/rs
           cargo xdk -t arm64-v8a -o ../src/main/jniLibs build --release
           cd ../..
