@@ -30,7 +30,9 @@ public class RomDownloader {
 
     private static final String TAG = "RomDownloader";
 
-    public static final String DEFAULT_ROM_URL = "https://github.com/twoyi/twoyi/releases/download/0.5.4/rootfs.7z";
+    public static final String GITHUB_REPO_ROM_URL = "https://github.com/sunandar3221/twoyi/releases/download/v0.5.4/rootfs.7z";
+    public static final String GITHUB_OFFICIAL_ROM_URL = "https://github.com/twoyi/twoyi/releases/download/0.5.4/rootfs.7z";
+    public static final String DEFAULT_ROM_URL = GITHUB_REPO_ROM_URL;
 
     public interface DownloadCallback {
         void onSuccess(File downloadedFile);
@@ -87,36 +89,51 @@ public class RomDownloader {
 
             try {
                 String currentUrl = targetUrl;
-                int redirects = 0;
-                while (redirects < 5) {
-                    URL url = new URL(currentUrl);
-                    connection = (HttpURLConnection) url.openConnection();
-                    connection.setInstanceFollowRedirects(true);
-                    connection.setConnectTimeout(20000);
-                    connection.setReadTimeout(30000);
-                    connection.setRequestProperty("User-Agent", "Mozilla/5.0 Twoyi Downloader");
-                    connection.connect();
+                boolean triedFallback = false;
 
-                    int responseCode = connection.getResponseCode();
-                    if (responseCode == HttpURLConnection.HTTP_MOVED_PERM
-                            || responseCode == HttpURLConnection.HTTP_MOVED_TEMP
-                            || responseCode == HttpURLConnection.HTTP_SEE_OTHER
-                            || responseCode == 307
-                            || responseCode == 308) {
-                        String newUrl = connection.getHeaderField("Location");
-                        connection.disconnect();
-                        if (newUrl != null) {
-                            currentUrl = newUrl;
-                            redirects++;
-                            continue;
+                while (true) {
+                    int redirects = 0;
+                    while (redirects < 5) {
+                        URL url = new URL(currentUrl);
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.setInstanceFollowRedirects(true);
+                        connection.setConnectTimeout(20000);
+                        connection.setReadTimeout(30000);
+                        connection.setRequestProperty("User-Agent", "Mozilla/5.0 Twoyi Downloader");
+                        connection.connect();
+
+                        int responseCode = connection.getResponseCode();
+                        if (responseCode == HttpURLConnection.HTTP_MOVED_PERM
+                                || responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+                                || responseCode == HttpURLConnection.HTTP_SEE_OTHER
+                                || responseCode == 307
+                                || responseCode == 308) {
+                            String newUrl = connection.getHeaderField("Location");
+                            connection.disconnect();
+                            if (newUrl != null) {
+                                currentUrl = newUrl;
+                                redirects++;
+                                continue;
+                            }
                         }
+                        break;
+                    }
+
+                    int code = connection != null ? connection.getResponseCode() : -1;
+                    if ((code == 404 || code == 403) && !triedFallback && !GITHUB_OFFICIAL_ROM_URL.equals(currentUrl)) {
+                        Log.i(TAG, "Repo release returned " + code + ", falling back to official GitHub release");
+                        if (connection != null) {
+                            connection.disconnect();
+                        }
+                        currentUrl = GITHUB_OFFICIAL_ROM_URL;
+                        triedFallback = true;
+                        continue;
+                    }
+
+                    if (connection == null || code != HttpURLConnection.HTTP_OK) {
+                        throw new RuntimeException("HTTP status " + code);
                     }
                     break;
-                }
-
-                if (connection == null || connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    int code = connection != null ? connection.getResponseCode() : -1;
-                    throw new RuntimeException("HTTP status " + code);
                 }
 
                 long totalBytes = connection.getContentLengthLong();

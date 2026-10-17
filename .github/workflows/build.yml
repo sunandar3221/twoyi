@@ -163,13 +163,15 @@ jobs:
           tag_name: v0.5.4
           name: "Twoyi 0.5.4 (Direct APK Download)"
           body: |
-            ### Download File APK Langsung (Bukan ZIP)
-            Klik file `.apk` di bagian **Assets** di bawah untuk langsung mengunduh dan menginstal di HP Android tanpa perlu mengekstrak file zip:
+            ### Download File Langsung (Bukan ZIP)
+            Klik file di bagian **Assets** di bawah untuk langsung mengunduh ke HP Android tanpa perlu mengekstrak file zip:
 
             - **`twoyi-slim-release.apk`** (~7 MB): Versi ringan hemat kuota. Sistem OS (rootfs.7z) diunduh otomatis di dalam aplikasi saat pertama kali dibuka, atau bisa pilih file manual.
             - **`twoyi-offline-release.apk`** (~200 MB): Versi offline lengkap, sudah termasuk sistem kontainer di dalamnya.
+            - **`rootfs.7z`** (~85 MB): Paket sistem OS kontainer Twoyi.
           files: |
             app/build/outputs/apk/slim/release/*.apk
             app/build/outputs/apk/offline/release/*.apk
+            app/src/offline/assets/rootfs.7z
           generate_release_notes: false
           make_latest: true

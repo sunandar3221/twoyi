@@ -216,7 +216,6 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
 
         UIHelper.getDialogBuilder(this)
                 .setTitle(R.string.os_download_title)
-                .setMessage(R.string.os_download_message)
                 .setCancelable(false)
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
