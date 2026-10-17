@@ -14,8 +14,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="textPrimary">#212121</color>
-    <color name="textSecondary">#757575</color>
+    <color name="textPrimary">#000000</color>
+    <color name="textSecondary">#000000</color>
 
     <color name="colorPrimary">#1f1f1f</color>
     <color name="colorSafe">#666666</color>
@@ -24,6 +24,6 @@
     <color name="colorAccent">#1f1f1f</color>
 
     <color name="dialog_background">#FFFFFF</color>
-    <color name="dialog_text_primary">#212121</color>
-    <color name="dialog_text_secondary">#757575</color>
+    <color name="dialog_text_primary">#000000</color>
+    <color name="dialog_text_secondary">#000000</color>
 </resources>

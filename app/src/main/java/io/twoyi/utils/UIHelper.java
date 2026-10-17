@@ -19,6 +19,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Process;
@@ -109,8 +111,22 @@ public class UIHelper {
         }
     }
 
+    public static boolean isDarkMode(Context context) {
+        if (context == null) {
+            return false;
+        }
+        try {
+            int nightMode = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            return nightMode == Configuration.UI_MODE_NIGHT_YES;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     public static AlertDialog.Builder getDialogBuilder(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.TwoyiAlertDialog);
+        boolean isDark = isDarkMode(context);
+        int themeRes = isDark ? R.style.TwoyiAlertDialog_Dark : R.style.TwoyiAlertDialog_Light;
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, themeRes);
         builder.setIcon(R.mipmap.ic_launcher);
         return builder;
     }
@@ -128,21 +144,37 @@ public class UIHelper {
     }
 
     public static ProgressDialog getProgressDialog(Context context) {
-        ProgressDialog dialog = new ProgressDialog(context, R.style.TwoyiAlertDialog);
+        boolean isDark = isDarkMode(context);
+        int themeRes = isDark ? R.style.TwoyiAlertDialog_Dark : R.style.TwoyiAlertDialog_Light;
+        ProgressDialog dialog = new ProgressDialog(context, themeRes);
         dialog.setIcon(R.mipmap.ic_launcher);
         dialog.setTitle(R.string.progress_dialog_title);
         dialog.setMessage(context.getString(R.string.progress_dialog_message));
         return dialog;
     }
 
-    public static MaterialDialog getNumberProgressDialog(Context context) {
+    public static MaterialDialog.Builder getMaterialDialogBuilder(Context context) {
+        boolean isDark = isDarkMode(context);
+        int dialogBgColor = isDark ? Color.BLACK : Color.WHITE;
+        int dialogTextColor = isDark ? Color.WHITE : Color.BLACK;
+        int widgetColor = isDark ? Color.WHITE : Color.BLACK;
+        com.afollestad.materialdialogs.Theme dialogTheme = isDark ? com.afollestad.materialdialogs.Theme.DARK : com.afollestad.materialdialogs.Theme.LIGHT;
+
         return new MaterialDialog.Builder(context)
+                .theme(dialogTheme)
+                .backgroundColor(dialogBgColor)
+                .titleColor(dialogTextColor)
+                .contentColor(dialogTextColor)
+                .widgetColor(widgetColor)
+                .positiveColor(dialogTextColor)
+                .negativeColor(dialogTextColor)
+                .neutralColor(dialogTextColor);
+    }
+
+    public static MaterialDialog getNumberProgressDialog(Context context) {
+        return getMaterialDialogBuilder(context)
                 .title(R.string.progress_dialog_title)
                 .iconRes(R.mipmap.ic_launcher)
-                .backgroundColorRes(R.color.dialog_background)
-                .titleColorRes(R.color.dialog_text_primary)
-                .contentColorRes(R.color.dialog_text_secondary)
-                .widgetColorRes(R.color.colorPrimary)
                 .progress(false, 0, true)
                 .build();
     }

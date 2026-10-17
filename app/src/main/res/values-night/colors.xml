@@ -6,10 +6,10 @@
   -->
 
 <resources>
-    <color name="dialog_background">#2C2C2C</color>
-    <color name="dialog_text_primary">#EEEEEE</color>
-    <color name="dialog_text_secondary">#B0B0B0</color>
+    <color name="dialog_background">#000000</color>
+    <color name="dialog_text_primary">#FFFFFF</color>
+    <color name="dialog_text_secondary">#FFFFFF</color>
 
-    <color name="textPrimary">#EEEEEE</color>
-    <color name="textSecondary">#B0B0B0</color>
+    <color name="textPrimary">#FFFFFF</color>
+    <color name="textSecondary">#FFFFFF</color>
 </resources>

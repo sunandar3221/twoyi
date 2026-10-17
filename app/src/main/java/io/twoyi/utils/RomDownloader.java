@@ -143,7 +143,7 @@ public class RomDownloader {
 
         mIsCancelled.set(false);
 
-        mProgressDialog = new MaterialDialog.Builder(mActivity)
+        mProgressDialog = UIHelper.getMaterialDialogBuilder(mActivity)
                 .title(R.string.os_download_progress_title)
                 .content(R.string.extracting_tips)
                 .iconRes(R.mipmap.ic_launcher)

@@ -330,7 +330,7 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
     }
 
     private void handleSelectedRomUri(Uri uri) {
-        MaterialDialog progressDialog = new MaterialDialog.Builder(this)
+        MaterialDialog progressDialog = UIHelper.getMaterialDialogBuilder(this)
                 .title(R.string.progress_dialog_title)
                 .content(R.string.extracting_tips)
                 .progress(true, 0)
