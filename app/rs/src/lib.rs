@@ -129,7 +129,12 @@ pub fn renderer_reset_window(
     debug!("reset_window");
     unsafe {
         let window = ndk_sys::ANativeWindow_fromSurface(env.get_native_interface(), surface);
+        if window.is_null() {
+            error!("reset_window: ANativeWindow_fromSurface was null!");
+            return;
+        }
         renderer_bindings::resetSubWindow(window as *mut c_void, 0, 0, _width, _height, _width, _height, 1.0, 0.0);
+        ndk_sys::ANativeWindow_release(window);
     }
 }
 
@@ -139,7 +144,12 @@ pub fn renderer_remove_window(env: JNIEnv, _clz: jclass, surface: jobject) {
 
     unsafe {
         let window = ndk_sys::ANativeWindow_fromSurface(env.get_native_interface(), surface);
+        if window.is_null() {
+            error!("renderer_remove_window: ANativeWindow_fromSurface was null!");
+            return;
+        }
         renderer_bindings::removeSubWindow(window as *mut c_void);
+        ndk_sys::ANativeWindow_release(window);
     }
 }
 
@@ -194,6 +204,8 @@ unsafe fn register_natives(jvm: &JavaVM, class_name: &str, methods: &[NativeMeth
 #[no_mangle]
 #[allow(non_snake_case)]
 unsafe fn JNI_OnLoad(jvm: JavaVM, _reserved: *mut c_void) -> jint {
+    libc::signal(libc::SIGPIPE, libc::SIG_IGN);
+
     android_logger::init_once(
         Config::default()
             .with_min_level(Level::Info)

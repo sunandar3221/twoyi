@@ -130,4 +130,13 @@
     <string name="os_extract_failed">Failed to extract container OS package. The archive may be corrupted or incomplete. Please retry.</string>
     <string name="boot_failed_tips">The container system failed to boot in time. Would you like to reset and reinstall the OS package?</string>
     <string name="reinstall_rom">Reset &amp; Reinstall</string>
+    <string name="progress_dialog_message">Processing, please wait…</string>
+    <string name="settings_key_container_fps">Container Frame Rate (FPS)</string>
+    <string name="settings_container_fps_summary">Adjust rendering frame rate (effective on next startup)</string>
+    <string name="fps_auto">Auto (Match display refresh rate)</string>
+    <string name="fps_30">30 FPS (Power Saver)</string>
+    <string name="fps_45">45 FPS (Balanced)</string>
+    <string name="fps_60">60 FPS (Smooth)</string>
+    <string name="fps_90">90 FPS (High Refresh Rate)</string>
+    <string name="fps_120">120 FPS (Ultra Smooth)</string>
 </resources>

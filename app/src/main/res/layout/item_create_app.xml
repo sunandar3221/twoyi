@@ -37,6 +37,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginBottom="5dp"
             android:gravity="center|start"
+            android:textColor="@color/dialog_text_primary"
             tools:text="App Label" />
 
         <TextView
@@ -46,6 +47,7 @@
             android:layout_marginStart="10dp"
             android:gravity="center|start"
             android:textSize="12sp"
+            android:textColor="@color/dialog_text_secondary"
             tools:text="App Label" />
     </LinearLayout>
 

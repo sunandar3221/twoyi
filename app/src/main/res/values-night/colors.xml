@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at https://mozilla.org/MPL/2.0/.
+  -->
+
+<resources>
+    <color name="dialog_background">#2C2C2C</color>
+    <color name="dialog_text_primary">#EEEEEE</color>
+    <color name="dialog_text_secondary">#B0B0B0</color>
+
+    <color name="textPrimary">#EEEEEE</color>
+    <color name="textSecondary">#B0B0B0</color>
+</resources>

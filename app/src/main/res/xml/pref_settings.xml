@@ -46,6 +46,11 @@
             android:title="@string/settings_key_container_dpi" />
 
         <Preference
+            android:key="@string/settings_key_container_fps"
+            android:summary="@string/settings_container_fps_summary"
+            android:title="@string/settings_key_container_fps" />
+
+        <Preference
             android:key="@string/settings_key_boot_timeout"
             android:summary="@string/settings_boot_timeout_summary"
             android:title="@string/settings_key_boot_timeout" />

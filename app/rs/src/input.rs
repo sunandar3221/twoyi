@@ -267,12 +267,15 @@ fn touch_server(width: i32, height: i32) {
                 let (tx, rx) = channel::<input_event>();
                 *INPUT_SENDER.lock().unwrap() = Some(tx);
 
-                thread::spawn(move || loop {
-                    let ret = rx.recv();
-                    if let Ok(ev) = ret {
+                thread::spawn(move || {
+                    while let Ok(ev) = rx.recv() {
                         let data = unsafe { any_as_u8_slice(&ev) };
-                        let _ = stream.write_all(data);
+                        if stream.write_all(data).is_err() {
+                            info!("touch client stream closed or write error");
+                            break;
+                        }
                     }
+                    info!("touch event thread finished");
                 });
             }
             Err(_) => {
@@ -329,12 +332,15 @@ fn key_server() {
                 let (tx, rx) = channel::<input_event>();
                 *KEY_SENDER.lock().unwrap() = Some(tx);
 
-                thread::spawn(move || loop {
-                    let ret = rx.recv();
-                    if let Ok(ev) = ret {
+                thread::spawn(move || {
+                    while let Ok(ev) = rx.recv() {
                         let data = unsafe { any_as_u8_slice(&ev) };
-                        let _ = stream.write_all(data);
+                        if stream.write_all(data).is_err() {
+                            info!("key client stream closed or write error");
+                            break;
+                        }
                     }
+                    info!("key event thread finished");
                 });
             }
             Err(_) => {

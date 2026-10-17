@@ -181,6 +181,16 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
+            Preference containerFps = findPreference(R.string.settings_key_container_fps);
+            if (containerFps != null) {
+                int currentFps = AppKV.getIntConfig(getActivity(), AppKV.CONTAINER_FPS, 0);
+                updateFpsSummary(containerFps, currentFps);
+                containerFps.setOnPreferenceClickListener(preference -> {
+                    showFpsChooserDialog(containerFps);
+                    return true;
+                });
+            }
+
             Preference bootTimeout = findPreference(R.string.settings_key_boot_timeout);
             if (bootTimeout != null) {
                 int currentTimeout = AppKV.getIntConfig(getActivity(), AppKV.BOOT_TIMEOUT_SECONDS, 35);
@@ -279,6 +289,45 @@ public class SettingsActivity extends AppCompatActivity {
                         updateDpiSummary(pref, selectedVal);
                         dialog.dismiss();
                         Toast.makeText(getActivity(), R.string.settings_container_dpi_summary, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void updateFpsSummary(Preference pref, int fps) {
+            if (fps == 0) {
+                pref.setSummary(getString(R.string.fps_auto));
+            } else {
+                pref.setSummary(fps + " FPS");
+            }
+        }
+
+        private void showFpsChooserDialog(Preference pref) {
+            CharSequence[] items = new CharSequence[]{
+                    getString(R.string.fps_auto),
+                    getString(R.string.fps_30),
+                    getString(R.string.fps_45),
+                    getString(R.string.fps_60),
+                    getString(R.string.fps_90),
+                    getString(R.string.fps_120)
+            };
+            int[] values = new int[]{0, 30, 45, 60, 90, 120};
+            int current = AppKV.getIntConfig(getActivity(), AppKV.CONTAINER_FPS, 0);
+            int checkedItem = 0;
+            for (int i = 0; i < values.length; i++) {
+                if (values[i] == current) {
+                    checkedItem = i;
+                    break;
+                }
+            }
+            UIHelper.getDialogBuilder(getActivity())
+                    .setTitle(R.string.settings_key_container_fps)
+                    .setSingleChoiceItems(items, checkedItem, (dialog, which) -> {
+                        int selectedVal = values[which];
+                        AppKV.setIntConfig(getActivity(), AppKV.CONTAINER_FPS, selectedVal);
+                        updateFpsSummary(pref, selectedVal);
+                        dialog.dismiss();
+                        Toast.makeText(getActivity(), R.string.settings_container_fps_summary, Toast.LENGTH_SHORT).show();
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();

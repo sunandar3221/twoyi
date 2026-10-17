@@ -110,7 +110,7 @@ public class UIHelper {
     }
 
     public static AlertDialog.Builder getDialogBuilder(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.ThemeOverlay_MaterialComponents_MaterialAlertDialog);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.TwoyiAlertDialog);
         builder.setIcon(R.mipmap.ic_launcher);
         return builder;
     }
@@ -128,9 +128,10 @@ public class UIHelper {
     }
 
     public static ProgressDialog getProgressDialog(Context context) {
-        ProgressDialog dialog = new ProgressDialog(context);
+        ProgressDialog dialog = new ProgressDialog(context, R.style.TwoyiAlertDialog);
         dialog.setIcon(R.mipmap.ic_launcher);
         dialog.setTitle(R.string.progress_dialog_title);
+        dialog.setMessage(context.getString(R.string.progress_dialog_message));
         return dialog;
     }
 
@@ -138,6 +139,10 @@ public class UIHelper {
         return new MaterialDialog.Builder(context)
                 .title(R.string.progress_dialog_title)
                 .iconRes(R.mipmap.ic_launcher)
+                .backgroundColorRes(R.color.dialog_background)
+                .titleColorRes(R.color.dialog_text_primary)
+                .contentColorRes(R.color.dialog_text_secondary)
+                .widgetColorRes(R.color.colorPrimary)
                 .progress(false, 0, true)
                 .build();
     }

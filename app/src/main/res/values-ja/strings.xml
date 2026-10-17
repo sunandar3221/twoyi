@@ -128,4 +128,13 @@
     <string name="os_extract_failed">コンテナOSパッケージの展開に失敗しました。ファイルが破損しているか不完全な可能性があります。再試行してください。</string>
     <string name="boot_failed_tips">コンテナシステムの起動がタイムアウトしました。OSパッケージをリセットして再インストールしますか？</string>
     <string name="reinstall_rom">リセットして再インストール</string>
+    <string name="progress_dialog_message">処理中、しばらくお待ちください…</string>
+    <string name="settings_key_container_fps">コンテナフレームレート (FPS)</string>
+    <string name="settings_container_fps_summary">描画フレームレートを調整（次回起動時に有効）</string>
+    <string name="fps_auto">自動 (ディスプレイのリフレッシュレートに合わせる)</string>
+    <string name="fps_30">30 FPS (省電力)</string>
+    <string name="fps_45">45 FPS (バランス)</string>
+    <string name="fps_60">60 FPS (スムーズ)</string>
+    <string name="fps_90">90 FPS (高リフレッシュレート)</string>
+    <string name="fps_120">120 FPS (超スムーズ)</string>
 </resources>

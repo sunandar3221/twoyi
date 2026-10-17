@@ -136,7 +136,17 @@ public class BootLogTexture extends TextureView implements TextureView.SurfaceTe
     protected void onVisibilityChanged(View changedView, int visibility) {
         super.onVisibilityChanged(changedView, visibility);
 
-        mRendering.set(visibility == VISIBLE);
+        mRendering.set(visibility == VISIBLE && isShown());
+    }
+
+    @Override
+    public void setVisibility(int visibility) {
+        super.setVisibility(visibility);
+        mRendering.set(visibility == VISIBLE && isShown());
+    }
+
+    public void stopRendering() {
+        mRendering.set(false);
     }
 
     @Override

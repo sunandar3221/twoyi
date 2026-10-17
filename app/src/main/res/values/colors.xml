@@ -22,4 +22,8 @@
     <color name="colorPrimaryDark">#111111</color>
     <color name="colorPrimaryOpacity">#aa1f1f1f</color>
     <color name="colorAccent">#1f1f1f</color>
+
+    <color name="dialog_background">#FFFFFF</color>
+    <color name="dialog_text_primary">#212121</color>
+    <color name="dialog_text_secondary">#757575</color>
 </resources>

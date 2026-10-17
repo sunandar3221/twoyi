@@ -427,6 +427,10 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
 
             runOnUiThread(() -> {
                 mLoadingView.stopAnimation();
+                if (mBootLogView != null) {
+                    mBootLogView.stopRendering();
+                    mBootLogView.setVisibility(View.GONE);
+                }
                 mLoadingLayout.setVisibility(View.GONE);
             });
         }, "waiting-boot").start();
@@ -503,18 +507,26 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
     }
 
     private float getBestFps() {
-        WindowManager windowManager = getWindowManager();
-        Display defaultDisplay = windowManager.getDefaultDisplay();
-        Display.Mode[] supportedModes = defaultDisplay.getSupportedModes();
-        float fps = 45;
-        for (Display.Mode supportedMode : supportedModes) {
-            float refreshRate = supportedMode.getRefreshRate();
-            if (refreshRate > fps) {
-                // fps = refreshRate;
-            }
+        int customFps = AppKV.getIntConfig(this, AppKV.CONTAINER_FPS, 0);
+        if (customFps > 0) {
+            Log.i(TAG, "using configured container fps: " + customFps);
+            return (float) customFps;
         }
 
-        Log.w(TAG, "current fps: " + fps);
-        return fps;
+        try {
+            WindowManager windowManager = getWindowManager();
+            Display defaultDisplay = windowManager.getDefaultDisplay();
+            float refreshRate = defaultDisplay.getRefreshRate();
+            if (refreshRate >= 30f && refreshRate <= 240f) {
+                Log.i(TAG, "using auto display refresh rate fps: " + refreshRate);
+                return refreshRate;
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "failed to query display refresh rate: " + t.getMessage());
+        }
+
+        float fallbackFps = 60f;
+        Log.i(TAG, "fallback fps: " + fallbackFps);
+        return fallbackFps;
     }
 }

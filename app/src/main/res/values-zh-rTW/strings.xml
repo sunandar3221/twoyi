@@ -128,4 +128,13 @@
     <string name="os_extract_failed">解壓縮容器系統包失敗。檔案可能已損壞或不完整，請重試。</string>
     <string name="boot_failed_tips">容器系統啟動超時。是否重設並重新安裝系統包？</string>
     <string name="reinstall_rom">重設並重新安裝</string>
+    <string name="progress_dialog_message">正在處理，請稍候…</string>
+    <string name="settings_key_container_fps">容器幀率 (FPS)</string>
+    <string name="settings_container_fps_summary">自訂容器渲染幀率（下次啟動生效）</string>
+    <string name="fps_auto">自動 (跟隨螢幕更新率)</string>
+    <string name="fps_30">30 FPS (省電)</string>
+    <string name="fps_45">45 FPS (平衡)</string>
+    <string name="fps_60">60 FPS (流暢)</string>
+    <string name="fps_90">90 FPS (高刷)</string>
+    <string name="fps_120">120 FPS (超流暢)</string>
 </resources>

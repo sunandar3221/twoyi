@@ -35,6 +35,9 @@ public class AppKV {
     // 自定义容器 DPI (0: 自动)
     public static final String CONTAINER_DPI = "container_dpi";
 
+    // 自定义容器帧率/FPS (0: 自动匹配屏幕刷新率，或具体数值如 30, 45, 60, 90, 120)
+    public static final String CONTAINER_FPS = "container_fps";
+
     // 启动超时时间（秒）
     public static final String BOOT_TIMEOUT_SECONDS = "boot_timeout_seconds";
 
