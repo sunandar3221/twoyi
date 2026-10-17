@@ -127,4 +127,7 @@
     <string name="os_custom_url_hint">https://.../rootfs.7z</string>
     <string name="quit">Quit</string>
     <string name="retry">Retry</string>
+    <string name="os_extract_failed">Failed to extract container OS package. The archive may be corrupted or incomplete. Please retry.</string>
+    <string name="boot_failed_tips">The container system failed to boot in time. Would you like to reset and reinstall the OS package?</string>
+    <string name="reinstall_rom">Reset &amp; Reinstall</string>
 </resources>

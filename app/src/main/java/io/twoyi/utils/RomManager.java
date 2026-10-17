@@ -78,6 +78,7 @@ public final class RomManager {
 
     public static void initRootfs(Context context) {
         File propFile = getVendorPropFile(context);
+        ensureDir(propFile.getParentFile());
         String language = Locale.getDefault().getLanguage();
         String country = Locale.getDefault().getCountry();
 
@@ -102,20 +103,55 @@ public final class RomManager {
     }
 
     public static void ensureBootFiles(Context context) {
+        File rootfsDir = getRootfsDir(context);
+        ensureDir(rootfsDir);
 
         // <rootdir>/dev/
-        File devDir = new File(getRootfsDir(context), "dev");
+        File devDir = new File(rootfsDir, "dev");
+        ensureDir(devDir);
         ensureDir(new File(devDir, "input"));
         ensureDir(new File(devDir, "socket"));
         ensureDir(new File(devDir, "maps"));
 
         ensureDir(new File(context.getDataDir(), "socket"));
 
+        ensureDir(getVendorDir(context));
+
         createLoaderSymlink(context);
 
         killOrphanProcess();
 
         saveLastKmsg(context);
+    }
+
+    public static void ensurePermissions(Context context) {
+        File rootfsDir = getRootfsDir(context);
+        File initFile = new File(rootfsDir, "init");
+        if (initFile.exists()) {
+            initFile.setExecutable(true, false);
+            initFile.setReadable(true, false);
+        }
+
+        String[] binDirs = new String[]{"system/bin", "system/xbin", "sbin", "bin"};
+        for (String sub : binDirs) {
+            File d = new File(rootfsDir, sub);
+            if (d.exists() && d.isDirectory()) {
+                File[] list = d.listFiles();
+                if (list != null) {
+                    for (File f : list) {
+                        f.setExecutable(true, false);
+                        f.setReadable(true, false);
+                    }
+                }
+            }
+        }
+
+        try {
+            Shell shell = ShellUtil.newSh();
+            shell.newJob().add("chmod 755 " + initFile.getAbsolutePath()).exec();
+            shell.newJob().add("chmod -R 755 " + new File(rootfsDir, "system/bin").getAbsolutePath()).exec();
+        } catch (Throwable ignored) {
+        }
     }
 
     private static void createLoaderSymlink(Context context) {
@@ -169,7 +205,7 @@ public final class RomManager {
 
     public static boolean romExist(Context context) {
         File initFile = new File(getRootfsDir(context), "init");
-        return initFile.exists();
+        return initFile.exists() && initFile.length() > 10000;
     }
 
     public static boolean needsUpgrade(Context context) {
@@ -229,47 +265,47 @@ public final class RomManager {
         return DEFAULT_ROM_INFO;
     }
 
-    public static void extractRootfs(Context context, boolean romExist, boolean needsUpgrade, boolean forceInstall, boolean use3rdRom) {
+    public static boolean extractRootfs(Context context, boolean romExist, boolean needsUpgrade, boolean forceInstall, boolean use3rdRom) {
 
         // force remove system dir to avoiding wired issues
         removeSystemPartition(context);
         removeVendorPartition(context);
 
+        boolean success = false;
         if (!romExist) {
             // first init
-            extractRootfsInAssets(context);
-            return;
-        }
-
-        if (forceInstall) {
+            success = extractRootfsInAssets(context);
+        } else if (forceInstall) {
             if (use3rdRom) {
                 // install 3rd rom
-                boolean success = extract3rdRootfs(context);
-                if (!success) {
-                    showRootfsInstallationFailure(context);
-                    return;
-                }
+                success = extract3rdRootfs(context);
             } else {
                 // factory reset!!
-                if (!extractRootfsInAssets(context)) {
-                    showRootfsInstallationFailure(context);
-                    return;
-                }
+                success = extractRootfsInAssets(context);
             }
 
-            // force install finish, reset the state.
-            AppKV.setBooleanConfig(context, AppKV.FORCE_ROM_BE_RE_INSTALL, false);
+            if (success) {
+                // force install finish, reset the state.
+                AppKV.setBooleanConfig(context, AppKV.FORCE_ROM_BE_RE_INSTALL, false);
+            }
         } else {
             if (use3rdRom) {
                 Log.w(TAG, "WTF? 3rd ROM must be force install!");
             }
             if (needsUpgrade) {
                 Log.i(TAG, "upgrade factory rom..");
-                if (!extractRootfsInAssets(context)) {
-                    showRootfsInstallationFailure(context);
-                }
+                success = extractRootfsInAssets(context);
+            } else {
+                success = true;
             }
         }
+
+        if (success) {
+            ensureBootFiles(context);
+            ensurePermissions(context);
+        }
+
+        return success;
     }
 
     private static void showRootfsInstallationFailure(Context context) {
@@ -333,7 +369,8 @@ public final class RomManager {
 
         Log.i(TAG, "extract rootfs, un7z: " + (t3 - t2) + "ms, ret: " + ret);
 
-        return ret == 0;
+        boolean valid = ret == 0 && new File(getRootfsDir(context), "init").exists();
+        return valid;
     }
 
     public static File getRootfsDir(Context context) {

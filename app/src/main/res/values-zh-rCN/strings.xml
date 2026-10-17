@@ -125,4 +125,7 @@
     <string name="os_custom_url_hint">https://.../rootfs.7z</string>
     <string name="quit">退出</string>
     <string name="retry">重试</string>
+    <string name="os_extract_failed">解压容器系统包失败。文件可能已损坏或不完整，请重试。</string>
+    <string name="boot_failed_tips">容器系统启动超时。是否重置并重新安装系统包？</string>
+    <string name="reinstall_rom">重置并重新安装</string>
 </resources>

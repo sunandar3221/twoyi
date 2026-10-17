@@ -180,6 +180,9 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
 
             startExtractAndBoot(romExist, factoryRomUpdated, forceInstall, use3rdRom, null);
         } else {
+            RomManager.ensureBootFiles(getApplicationContext());
+            RomManager.ensurePermissions(getApplicationContext());
+            RomManager.initRootfs(getApplicationContext());
             mRootView.addView(mSurfaceView, 0);
             showBootingProcedure();
         }
@@ -191,8 +194,23 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
 
         new Thread(() -> {
             mIsExtracting.set(true);
-            RomManager.extractRootfs(getApplicationContext(), romExist, factoryRomUpdated, forceInstall, use3rdRom);
+            boolean success = RomManager.extractRootfs(getApplicationContext(), romExist, factoryRomUpdated, forceInstall, use3rdRom);
             mIsExtracting.set(false);
+
+            if (!success) {
+                runOnUiThread(() -> {
+                    if (onFinishExtract != null) {
+                        onFinishExtract.run();
+                    }
+                    UIHelper.getDialogBuilder(Render2Activity.this)
+                            .setTitle(R.string.os_download_failed_title)
+                            .setMessage(R.string.os_extract_failed)
+                            .setPositiveButton(R.string.retry, (dialog, which) -> showDownloadRomDialog())
+                            .setNegativeButton(R.string.quit, (dialog, which) -> finish())
+                            .show();
+                });
+                return;
+            }
 
             RomManager.initRootfs(getApplicationContext());
 
@@ -319,22 +337,22 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
                 .show();
 
         UIHelper.GLOBAL_EXECUTOR.execute(() -> {
+            File tempFile = new File(getCacheDir(), "selected_rom.tmp");
             File targetFile = getFileStreamPath(RomManager.ROOTFS_NAME);
             try (InputStream is = getContentResolver().openInputStream(uri);
-                 OutputStream os = new FileOutputStream(targetFile)) {
-                byte[] buffer = new byte[32768];
-                int count;
-                while ((count = is.read(buffer)) > 0) {
-                    os.write(buffer, 0, count);
-                }
-                os.flush();
+                 OutputStream os = new FileOutputStream(tempFile)) {
+                IOUtils.copy(is, os);
+
+                RomDownloader.processRomFile(getApplicationContext(), tempFile, targetFile);
+                tempFile.delete();
 
                 runOnUiThread(() -> {
                     UIHelper.dismiss(progressDialog);
                     startExtractAndBoot(false, false, false, false, null);
                 });
             } catch (Exception e) {
-                Log.e(TAG, "Failed to copy selected ROM file", e);
+                Log.e(TAG, "Failed to copy or process selected ROM file", e);
+                tempFile.delete();
                 targetFile.delete();
                 runOnUiThread(() -> {
                     UIHelper.dismiss(progressDialog);
@@ -383,13 +401,25 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
                 if (!success) {
                     LogEvents.trackBootFailure(getApplicationContext());
 
-                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), R.string.boot_failed, Toast.LENGTH_SHORT).show());
-
-                    // waiting for track
-                    SystemClock.sleep(3000);
-
-                    finish();
-                    System.exit(0);
+                    runOnUiThread(() -> {
+                        UIHelper.getDialogBuilder(Render2Activity.this)
+                                .setTitle(R.string.boot_failed)
+                                .setMessage(R.string.boot_failed_tips)
+                                .setCancelable(false)
+                                .setPositiveButton(R.string.reinstall_rom, (dialog, which) -> {
+                                    IOUtils.deleteDirectory(RomManager.getRootfsDir(getApplicationContext()));
+                                    File localRom = getFileStreamPath(RomManager.ROOTFS_NAME);
+                                    if (localRom != null && localRom.exists()) {
+                                        localRom.delete();
+                                    }
+                                    RomManager.reboot(Render2Activity.this);
+                                })
+                                .setNegativeButton(R.string.quit, (dialog, which) -> {
+                                    finish();
+                                    System.exit(0);
+                                })
+                                .show();
+                    });
                     return;
                 }
             }

@@ -7,6 +7,7 @@
 package io.twoyi.utils;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -16,13 +17,17 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import io.twoyi.R;
 
@@ -31,7 +36,7 @@ public class RomDownloader {
     private static final String TAG = "RomDownloader";
 
     public static final String GITHUB_REPO_ROM_URL = "https://github.com/sunandar3221/twoyi/releases/download/v0.5.4/rootfs.7z";
-    public static final String GITHUB_OFFICIAL_ROM_URL = "https://github.com/twoyi/twoyi/releases/download/0.5.4/rootfs.7z";
+    public static final String GITHUB_OFFICIAL_ROM_URL = "https://github.com/twoyi/twoyi/releases/download/0.5.4/twoyi_0.5.4-03211927-release.apk";
     public static final String DEFAULT_ROM_URL = GITHUB_REPO_ROM_URL;
 
     public interface DownloadCallback {
@@ -51,6 +56,84 @@ public class RomDownloader {
 
     public void cancel() {
         mIsCancelled.set(true);
+    }
+
+    public static boolean is7zArchive(File file) {
+        if (file == null || !file.exists() || file.length() < 32) {
+            return false;
+        }
+        try (InputStream is = new FileInputStream(file)) {
+            byte[] magic = new byte[6];
+            int read = is.read(magic);
+            return read == 6
+                    && magic[0] == '7'
+                    && magic[1] == 'z'
+                    && (magic[2] & 0xFF) == 0xBC
+                    && (magic[3] & 0xFF) == 0xAF
+                    && (magic[4] & 0xFF) == 0x27
+                    && (magic[5] & 0xFF) == 0x1C;
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    public static boolean isZipOrApk(File file) {
+        if (file == null || !file.exists() || file.length() < 32) {
+            return false;
+        }
+        try (InputStream is = new FileInputStream(file)) {
+            byte[] magic = new byte[4];
+            int read = is.read(magic);
+            return read == 4
+                    && magic[0] == 'P'
+                    && magic[1] == 'K'
+                    && (magic[2] & 0xFF) == 0x03
+                    && (magic[3] & 0xFF) == 0x04;
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    public static void processRomFile(Context context, File sourceFile, File targetFile) throws IOException {
+        if (isZipOrApk(sourceFile)) {
+            try (ZipFile zipFile = new ZipFile(sourceFile)) {
+                ZipEntry entry = zipFile.getEntry("assets/rootfs.7z");
+                if (entry == null) {
+                    entry = zipFile.getEntry("rootfs.7z");
+                }
+                if (entry == null) {
+                    throw new IOException("APK tidak berisi paket assets/rootfs.7z");
+                }
+
+                if (targetFile.exists()) {
+                    targetFile.delete();
+                }
+
+                try (InputStream zis = zipFile.getInputStream(entry);
+                     OutputStream fos = new FileOutputStream(targetFile)) {
+                    IOUtils.copy(zis, fos);
+                }
+
+                ZipEntry romIniEntry = zipFile.getEntry("assets/rom.ini");
+                if (romIniEntry != null) {
+                    File romIniFile = context.getFileStreamPath("rom.ini");
+                    try (InputStream ris = zipFile.getInputStream(romIniEntry);
+                         OutputStream ros = new FileOutputStream(romIniFile)) {
+                        IOUtils.copy(ris, ros);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+        } else if (is7zArchive(sourceFile)) {
+            if (targetFile.exists()) {
+                targetFile.delete();
+            }
+            if (!sourceFile.renameTo(targetFile)) {
+                IOUtils.copyFile(sourceFile, targetFile);
+            }
+        } else {
+            throw new IOException("File bukan merupakan format rootfs.7z atau APK Twoyi yang valid.");
+        }
     }
 
     public void startDownload(String downloadUrl, DownloadCallback callback) {
@@ -183,21 +266,18 @@ public class RomDownloader {
                     return;
                 }
 
-                if (targetFile.exists()) {
-                    targetFile.delete();
-                }
-
-                if (!tempFile.renameTo(targetFile)) {
-                    IOUtils.copyFile(tempFile, targetFile);
-                    tempFile.delete();
-                }
-
                 mMainHandler.post(() -> {
                     if (mProgressDialog != null && mProgressDialog.isShowing()) {
                         mProgressDialog.setTitle(R.string.os_download_extracting_title);
                         mProgressDialog.setContent(R.string.extracting_tips);
                         mProgressDialog.setProgress(100);
                     }
+                });
+
+                processRomFile(mActivity, tempFile, targetFile);
+                tempFile.delete();
+
+                mMainHandler.post(() -> {
                     if (callback != null) {
                         callback.onSuccess(targetFile);
                     }

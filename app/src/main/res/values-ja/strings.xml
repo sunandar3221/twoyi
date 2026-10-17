@@ -125,4 +125,7 @@
     <string name="os_custom_url_hint">https://.../rootfs.7z</string>
     <string name="quit">終了</string>
     <string name="retry">再試行</string>
+    <string name="os_extract_failed">コンテナOSパッケージの展開に失敗しました。ファイルが破損しているか不完全な可能性があります。再試行してください。</string>
+    <string name="boot_failed_tips">コンテナシステムの起動がタイムアウトしました。OSパッケージをリセットして再インストールしますか？</string>
+    <string name="reinstall_rom">リセットして再インストール</string>
 </resources>

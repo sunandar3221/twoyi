@@ -93,17 +93,26 @@ pub fn renderer_init(
             }
         });
 
-        let loader_path: String = env.get_string(loader.into()).unwrap().into();
+        let loader_path: String = match env.get_string(loader.into()) {
+            Ok(s) => s.into(),
+            Err(e) => {
+                error!("get_string loader failed: {:?}", e);
+                return;
+            }
+        };
         let working_dir = "/data/data/io.twoyi/rootfs";
         let log_path = "/data/data/io.twoyi/log.txt";
-        let outputs = File::create(log_path).unwrap();
-        let errors = outputs.try_clone().unwrap();
-        let _ = Command::new("./init")
-            .current_dir(working_dir)
-            .env("TYLOADER", loader_path)
-            .stdout(Stdio::from(outputs))
-            .stderr(Stdio::from(errors))
-            .spawn();
+        let outputs = File::create(log_path);
+        let mut cmd = Command::new("./init");
+        cmd.current_dir(working_dir)
+            .env("TYLOADER", loader_path);
+
+        if let Ok(out) = outputs {
+            if let Ok(err) = out.try_clone() {
+                cmd.stdout(Stdio::from(out)).stderr(Stdio::from(err));
+            }
+        }
+        let _ = cmd.spawn();
     }
 }
 

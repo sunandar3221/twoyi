@@ -248,8 +248,15 @@ fn generate_touch_device(width: i32, height: i32) -> device_info {
 
 fn touch_server(width: i32, height: i32) {
     let device = generate_touch_device(width, height);
+    let _ = std::fs::create_dir_all("/data/data/io.twoyi/rootfs/dev/input");
     let _ = std::fs::remove_file(TOUCH_PATH);
-    let listener = unix_socket::UnixListener::bind(TOUCH_PATH).unwrap();
+    let listener = match unix_socket::UnixListener::bind(TOUCH_PATH) {
+        Ok(l) => l,
+        Err(e) => {
+            info!("bind touch listener failed: {:?}", e);
+            return;
+        }
+    };
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
@@ -303,8 +310,15 @@ pub fn send_key_code(_keycode: i32) {
 
 fn key_server() {
     let device = generate_key_device();
+    let _ = std::fs::create_dir_all("/data/data/io.twoyi/rootfs/dev/input");
     let _ = std::fs::remove_file(KEY_PATH);
-    let listener = unix_socket::UnixListener::bind(KEY_PATH).unwrap();
+    let listener = match unix_socket::UnixListener::bind(KEY_PATH) {
+        Ok(l) => l,
+        Err(e) => {
+            info!("bind key listener failed: {:?}", e);
+            return;
+        }
+    };
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {

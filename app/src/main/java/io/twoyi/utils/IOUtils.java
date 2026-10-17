@@ -99,6 +99,15 @@ public class IOUtils {
         }
     }
 
+    public static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[32768];
+        int count;
+        while ((count = in.read(buffer)) > 0) {
+            out.write(buffer, 0, count);
+        }
+        out.flush();
+    }
+
     public static void closeSilently(Closeable closeable) {
         if (closeable == null) {
             return;
