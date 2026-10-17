@@ -30,6 +30,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import io.twoyi.utils.IOUtils;
+
 public class TwoyiMessenger {
     public static final String TAG = "TwoyiMessenger";
 
