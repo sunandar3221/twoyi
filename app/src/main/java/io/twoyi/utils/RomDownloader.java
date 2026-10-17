@@ -35,7 +35,7 @@ public class RomDownloader {
 
     private static final String TAG = "RomDownloader";
 
-    public static final String GITHUB_REPO_ROM_URL = "https://github.com/sunandar3221/twoyi/releases/download/v0.5.4/rootfs.7z";
+    public static final String GITHUB_REPO_ROM_URL = "https://github.com/sunandar3221/twoyi-fork/releases/download/v0.5.4/rootfs.7z";
     public static final String GITHUB_OFFICIAL_ROM_URL = "https://github.com/twoyi/twoyi/releases/download/0.5.4/twoyi_0.5.4-03211927-release.apk";
     public static final String DEFAULT_ROM_URL = GITHUB_REPO_ROM_URL;
 

@@ -1,101 +1,63 @@
 <div align="center">
-    <p>
-    <h3>
-      <b>
-        两仪
-      </b>
-    </h3>
-  </p>
-  <p>
-    <b>
-      一个轻量级的 Android 容器
-    </b>
-  </p>
-  <p>
 
-[![contributions welcome](https://img.shields.io/badge/Contributions-welcome-brightgreen?logo=github)](CODE_OF_CONDUCT.md) [![Website](https://img.shields.io/badge/Website-available-brightgreen?logo=e)](https://twoyi.io)
-  </p>
-  <p>
-    <sub>
-      Made with ❤︎ by
-      <a href="https://github.com/tiann">
-        weishu
-      </a>
-    </sub>
-  </p>
-  <br />
-  <p>
-    <a href="https://twoyi.io">
-      <img
-        src="https://github.com/twoyi/twoyi/blob/main/assets/twoyi_screen.jpg?raw=true"
-        alt="Screenshot"
-        width="25%"
-      />
-    </a>
-  </p>
+# 🚀 Twoyi Fork (两仪 Fork)
+
+### *免 ROOT 的轻量级 Android 系统容器*
+
+[![Build Status](https://github.com/sunandar3221/twoyi-fork/actions/workflows/build.yml/badge.svg)](https://github.com/sunandar3221/twoyi-fork/actions/workflows/build.yml)
+[![Latest Release](https://img.shields.io/github/v/release/sunandar3221/twoyi-fork?color=blue&label=Latest%20Release)](https://github.com/sunandar3221/twoyi-fork/releases/latest)
+[![Direct APK](https://img.shields.io/badge/Download-Direct%20APK-success?logo=android)](https://github.com/sunandar3221/twoyi-fork/releases/latest)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-orange.svg)](https://opensource.org/licenses/MPL-2.0)
+
+<br/>
+
+<img src="https://github.com/twoyi/twoyi/blob/main/assets/twoyi_screen.jpg?raw=true" alt="两仪截图" width="260px" style="border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);"/>
+
+<p>
+  <b>Twoyi Fork</b> 是基于原项目 <a href="https://github.com/tiann">weishu</a> 维护的增强分支版本。<br/>
+  修复了闪退与卡顿问题、优化了深色/浅色模式下的弹窗文字对比度、支持自定义容器帧率，并提供 GitHub Actions 自动化直接 APK 下载。
+</p>
+
 </div>
 
-## 简介
+---
 
-两仪就是一个轻量级的 Android 容器。它可以在 Android 系统上以一个普通 App 的身份（免ROOT）来运行一个相对完整的 Android 系统。并且它支持 Android 8.1 ~ 12。
+## 🌟 此 Fork 的特性与修复
 
-## 能做什么
+- ⚡ **直接下载 APK**：无需下载和解压 zip 包，可直接从 [GitHub Releases](https://github.com/sunandar3221/twoyi-fork/releases/latest) 下载 `.apk` 文件并在 Android 手机上安装。
+- 📦 **双版本安装包**：
+  - **`twoyi-slim-release.apk` (精简版，约 7 MB)**：超小安装包。首次启动时可通过 GitHub 在线自动下载镜像，也支持选择本地文件或自定义链接。
+  - **`twoyi-offline-release.apk` (离线独立版，约 200 MB)**：内置完整 `rootfs.7z` 系统镜像，完全离线免联网安装。
+- 🎯 **自定义容器帧率 (FPS)**：支持在设置中选择 **自动**（跟随设备屏幕刷新率，如 60Hz/90Hz/120Hz）、**30 FPS**、**45 FPS**、**60 FPS**、**90 FPS** 或 **120 FPS**。
+- 🌓 **深色/浅色模式弹窗完美对比度**：
+  - **深色模式**：纯黑背景 (`#000000`) 配合纯白文字 (`#FFFFFF`)。
+  - **浅色模式**：纯白背景 (`#FFFFFF`) 配合纯黑文字 (`#000000`)。
+  - 彻底解决应用管理器与安装弹窗中文字泛白或看不清的问题。
+- 🛡️ **稳定性提升与防闪退**：
+  - 忽略 Unix 域套接字的 `SIGPIPE` 信号，避免进程意外终止。
+  - 安全退出触摸与按键事件循环，杜绝线程泄漏与 100% CPU 导致的卡死。
+  - 完善窗口指针生命周期释放及引导日志渲染线程停止逻辑。
+- 🛠️ **可调容器参数**：支持在设置中直接调整容器屏幕密度 (DPI) 和启动超时时间。
 
-1. 免 ROOT 使用太极·阳；后续也可以支持 Xposed、EdXposed 和 LSPosed 等。
-2. 免 ROOT 设备上使用 ROOT 功能。
-3. 部分支持 Magisk 模块。
-4. 两仪的 HAL 层是可以虚拟化的；如虚拟相机等。
-5. 两仪还能用作安全研究；如脱壳等。
+---
 
-## 特性
+## 📥 下载地址
 
-1. 两仪是一个免 ROOT 的 Android 系统级容器；它内部运行了一个相对完整的 Android 系统，与外部的系统可以形成一定程度的隔离。
-2. 两仪内部 Android 系统版本为 Android 8.1；后续会支持 Android 10.
-3. 两仪的启动速度非常快。除第一次初始化系统较慢之外，后续两仪基本上可以在三秒钟左右启动。
-4. 两仪将会是一个开源项目。
-5. 两仪内部的系统将是完全可定制化的。因为其系统开源，你完全可以自己拉个分支编译 AOSP；对系统组件，如 framework，HAL 做定制化开发；实现虚拟相机，虚拟传感器等特殊功能。
+前往 **[GitHub Releases 最新发布页](https://github.com/sunandar3221/twoyi-fork/releases/latest)** 下载：
 
-## 如何编译
+| 版本 | 文件名 | 体积 | 说明 |
+| :--- | :--- | :--- | :--- |
+| **精简版 (推荐)** | [`twoyi-slim-release.apk`](https://github.com/sunandar3221/twoyi-fork/releases/latest) | ~7 MB | 轻量小巧，首次启动在线下载容器镜像。 |
+| **离线版** | [`twoyi-offline-release.apk`](https://github.com/sunandar3221/twoyi-fork/releases/latest) | ~200 MB | 完整独立版，内置 ROM，无需额外联网。 |
+| **系统镜像** | [`rootfs.7z`](https://github.com/sunandar3221/twoyi-fork/releases/latest) | ~85 MB | 官方两仪容器 rootfs 镜像压缩包。 |
 
-两仪由两部分组成：
+---
 
-1. 两仪 App，它实际上是一个 UI 渲染引擎。
-2. 两仪内部运行的 ROM。
+## 🤝 致谢
 
-这个仓库是两仪 App 的源码，目前两仪 ROM 正在开源中，目前无法从源码编译出 ROM。
+- **原作者**：[weishu (tiann)](https://github.com/tiann) 创建并开源了两仪架构。
+- **Fork 维护**：[sunandar3221](https://github.com/sunandar3221)。
 
-## 编译 两仪 ROM
+## 📄 许可证
 
-WIP
-
-## 编译 两仪 App
-
-### 安装 Rust
-
-两仪有部分组件是用 Rust 写的，因此需要先 [安装 Rust 和 Cargo](https://www.rust-lang.org/tools/install)
-
-### 安装 cargo-xdk
-
-请参阅: [cargo-xdk](https://github.com/tiann/cargo-xdk)
-
-可以通过如下命令检查是否成功: `./gradlew cargoBuild`，成功的话可以在 `app/src/main/jniLibs/arm64-v8a` 看到 libtwoyi.so。
-
-PS. 请安装 ndk 22 或者更低版本，高版本可能无法编译成功。
-
-### 集成 rootfs
-
-两仪的 ROM 正在开源中，目前还无法从源码编译；不过可以使用预编译的 ROM。
-
-可以从官方发布的 APK 包里面提取 `rootfs.7z` 然后放置到本项目的 `app/src/main/assets` 目录下。
-
-### 使用 Android Studio 编译
-
-直接使用 Android Studio 编译即可。
-
-## 讨论
-
-[Telegram 群组](https://t.me/twoyi)
-
-## 联系我
-
-twsxtd@gmail.com
+本项目采用 [Mozilla Public License 2.0 (MPL-2.0)](LICENSE) 开源协议。

@@ -1,107 +1,102 @@
 <div align="center">
-    <p><b>Due to the complexity of the project and lack of any revenue, the project has been discontinued.</b></p>
+
+# 🚀 Twoyi Fork (两仪 Fork)
+
+### *A Lightweight, Rootless Android Container for Android*
+
+[![Build Status](https://github.com/sunandar3221/twoyi-fork/actions/workflows/build.yml/badge.svg)](https://github.com/sunandar3221/twoyi-fork/actions/workflows/build.yml)
+[![Latest Release](https://img.shields.io/github/v/release/sunandar3221/twoyi-fork?color=blue&label=Latest%20Release)](https://github.com/sunandar3221/twoyi-fork/releases/latest)
+[![Direct APK](https://img.shields.io/badge/Download-Direct%20APK-success?logo=android)](https://github.com/sunandar3221/twoyi-fork/releases/latest)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-orange.svg)](https://opensource.org/licenses/MPL-2.0)
+
+<br/>
+
+<img src="https://github.com/twoyi/twoyi/blob/main/assets/twoyi_screen.jpg?raw=true" alt="Twoyi Screenshot" width="260px" style="border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);"/>
+
+<p>
+  <b>Twoyi Fork</b> is an actively maintained continuation of the original Twoyi project by <a href="https://github.com/tiann">weishu</a>.<br/>
+  It brings stability fixes, native crash prevention, dark/light theme visibility improvements, configurable frame rates, and automated direct APK releases.
+</p>
+
 </div>
 
-<div align="center">
-    <p>
-    <h3>
-      <b>
-        Twoyi Platform
-      </b>
-    </h3>
-  </p>
-  <p>
-    <b>
-      A lightweight Android container
-    </b>
-    <br/>
-  </p>
-  <p>
+---
 
-[![contributions welcome](https://img.shields.io/badge/Contributions-welcome-brightgreen?logo=github)](CODE_OF_CONDUCT.md) [![Website](https://img.shields.io/badge/Website-available-brightgreen?logo=e)](https://twoyi.io)
-  </p>
-  <p>
-    <sub>
-      Made with ❤︎ by
-      <a href="https://github.com/tiann">
-        weishu
-      </a>
-    </sub>
-  </p>
-  <br />
-  <p>
-    <a href="https://twoyi.io">
-      <img
-        src="https://github.com/twoyi/twoyi/blob/main/assets/twoyi_screen.jpg?raw=true"
-        alt="Screenshot"
-        width="25%"
-      />
-    </a>
-  </p>
-</div>
+## 🌟 Highlights & New Features in this Fork
 
-[README 中文版](README_CN.md)
+- ⚡ **Direct APK Downloads**: No zip archives! Download ready-to-install `.apk` files directly to your Android device from [GitHub Releases](https://github.com/sunandar3221/twoyi-fork/releases/latest).
+- 📦 **Dual Release Packages**:
+  - **`twoyi-slim-release.apk` (~7 MB)**: Ultra-compact edition. Downloads the container OS (`rootfs.7z`, ~85MB) automatically inside the app via GitHub Releases, with fallback to local file selection or custom URL.
+  - **`twoyi-offline-release.apk` (~200 MB)**: Standalone complete edition with the container OS pre-bundled for 100% offline installation.
+- 🎯 **Configurable Frame Rate (FPS)**: Choose between **Auto** (dynamically matches device display refresh rate, e.g. 60Hz, 90Hz, 120Hz), **30 FPS** (Power Saver), **45 FPS** (Balanced), **60 FPS** (Smooth), **90 FPS** (High Refresh Rate), or **120 FPS** (Ultra Smooth).
+- 🌓 **Dynamic Dark & Light Mode Dialogs**:
+  - Automatically adapts to system UI theme:
+    - **Dark Mode**: Dialogs feature a solid black background (`#000000`) with crisp, bold white text (`#FFFFFF`).
+    - **Light Mode**: Dialogs feature a solid white background (`#FFFFFF`) with solid black text (`#000000`).
+  - No more faint, washed-out, or invisible text in the App Manager or installation dialogs.
+- 🛡️ **Hang & Native Crash Prevention**:
+  - Ignores unhandled `SIGPIPE` signals on native Unix domain sockets to prevent sudden silent app exits.
+  - Safely terminates touch and key input event loops upon socket disconnection, eliminating CPU 100% thread leaks and UI freeze/hangs.
+  - Added null safety checks and proper `ANativeWindow_release` handling on window lifecycle changes.
+  - Automatically terminates boot log rendering background threads once startup completes.
+- 🛠️ **Customizable Container Settings**: Customize container DPI (density) and boot timeout directly from Settings.
+- 🤖 **Automated GitHub Actions CI/CD**: Clean compilation workflow compiling Rust native library (`libtwoyi.so`) and Gradle APKs with automated direct release publishing.
 
-## Introduction
+---
 
-Twoyi is a lightweight Android container. It runs a nearly complete Android system as a normal app (no root required) on Android. Additionally, it supports Android 8.1 ~ 12.
+## 📥 Download Links
 
-## Capability
+Download the latest release directly from **[GitHub Releases](https://github.com/sunandar3221/twoyi-fork/releases/latest)**:
 
-1. Use Taichi·Yang without unlocking the bootloader. Xposed, EdXposed and LSPosed will be supported.
-2. Use root on non-rooted devices.
-3. Use a few Magisk modules.
-4. Implement additional system components such as virtual camera by virtualizing the HAL layer.
-5. Do security research such as shelling.
+| Edition | File Name | Size | Description |
+| :--- | :--- | :--- | :--- |
+| **Slim (Recommended)** | [`twoyi-slim-release.apk`](https://github.com/sunandar3221/twoyi-fork/releases/latest) | ~7 MB | Lightweight APK. Downloads or extracts OS ROM on first launch. |
+| **Offline Standalone** | [`twoyi-offline-release.apk`](https://github.com/sunandar3221/twoyi-fork/releases/latest) | ~200 MB | Full offline package. Contains internal OS ROM inside APK. |
+| **OS Package** | [`rootfs.7z`](https://github.com/sunandar3221/twoyi-fork/releases/latest) | ~85 MB | Official container rootfs archive for manual installation. |
 
-## Features
+---
 
-1. Twoyi is a rootless Android system-level container, which runs a nearly complete Android system as a normal app and is mostly isolated from the main system.
-2. The internal Android version is Android 8.1 and Android 10 will be supported.
-3. Booting up twoyi is very fast (within three seconds) except for the initialization process.
-4. Twoyi is an open source project.
-5. The internal system of twoyi will be fully customizable. Because its system is open source, you can fork the project to compile your own system. You can also customize the system components, such as the HAL layer to implement virtual cameras, virtual sensors and other special features.
+## 📖 How It Works
 
-## Building
+Twoyi is a rootless system-level container running a full Android 8.1 userland inside an Android app:
+- **No root required**: Operates within normal Android app sandbox permissions.
+- **Fast Startup**: Boots in seconds once installed.
+- **App Isolation**: Install and test applications inside an isolated container without affecting host system data.
+- **Compatibility**: Supports host devices running Android 8.1 up to Android 12+.
 
-Twoyi contains two parts:
+---
 
-1. The twoyi app, which is actually a UI rendering engine.
-2. The internal ROM of twoyi.
+## ⚙️ Building from Source
 
-This repository contains the twoyi app, and the twoyi ROM is currently being turned into open-source.  Therefore, at this moment, the ROM cannot be compiled from source yet.
+This project utilizes GitHub Actions CI for all compilation tasks. To build manually:
 
-### Build the App manually
+### Prerequisites
+1. **JDK 11**
+2. **Android NDK r21e**
+3. **Rust Toolchain** with `aarch64-linux-android` target
+4. **cargo-xdk**:
+   ```bash
+   cargo install --git https://github.com/tiann/cargo-xdk
+   ```
 
-#### Install Rust
+### Build Steps
+```bash
+# 1. Build native Rust library
+cd app/rs
+cargo xdk -t arm64-v8a -o ../src/main/jniLibs build --release
+cd ../..
 
-Twoyi is partially written in Rust, so it's nessesary to [install Rust and Cargo](https://www.rust-lang.org/tools/install) first.
+# 2. Build APK using Gradle
+./gradlew assembleRelease
+```
 
-#### Install cargo-xdk
+---
 
-Please refer to [cargo-xdk](https://github.com/tiann/cargo-xdk).
+## 🤝 Credits & Acknowledgements
 
-You can check if it is installed by running `./gradlew cargoBuild`. If it succeeded, you will see libtwoyi.so in `app/src/main/jniLibs/arm64-v8a`.
+- **Original Creator**: [weishu (tiann)](https://github.com/tiann) for the original [twoyi/twoyi](https://github.com/twoyi/twoyi) architecture.
+- **Fork Maintainer**: [sunandar3221](https://github.com/sunandar3221) for bugfixes, stability enhancements, and automated CI maintenance.
 
-PS. Please use ndk v22 or lower, otherwise it may fail.
+## 📄 License
 
-#### Integrating rootfs
-
-Currently you cannot build the ROM yourself, instead you can use the prebuilt ROM.
-To do that, extract rootfs.7z from the official release apk and copy it to `app/src/main/assets`.
-
-### Build the app with Android Studio
-
-Build it with Android Studio normally.
-
-### Build the ROM
-
-WIP
-
-## Discussion
-
-[Telegram Group](https://t.me/twoyi)
-
-## Contact Me
-
-twsxtd@gmail.com
+This project is licensed under the [Mozilla Public License 2.0 (MPL-2.0)](LICENSE).
